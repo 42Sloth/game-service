@@ -3,13 +3,17 @@ import io from 'socket.io-client';
 
 const Game = () => {
   useEffect(() => {
-    const socket = io('ws://localhost:81/chat');
-    socket.on('receive_left', data => {
-      Pong.player_right.y = data;
-    });
-    socket.on('receive_right', data => {
-      Pong.player_left.y = data;
-    });
+    const socket = io('ws://localhost:81/pong');
+    const nickname = prompt('What is your nickname?');
+    if (!nickname) {
+      window.location.reload();
+    }
+    // socket.on('receive_left', data => {
+    //   Pong.player_right.y = data;
+    // });
+    // socket.on('receive_right', data => {
+    //   Pong.player_left.y = data;
+    // });
     // socket.on('ball_location', data => {
     //   Pong.ball.x = data.x;
     //   Pong.ball.y = data.y;
@@ -296,9 +300,9 @@ const Game = () => {
 
       loop: function () {
         Pong.update();
-        socket.emit('ball', Pong.ball);
-        socket.emit('send_left', Pong.player_left.y);
-        socket.emit('send_right', Pong.player_right.y);
+        // socket.emit('ball', Pong.ball);
+        // socket.emit('send_left', Pong.player_left.y);
+        // socket.emit('send_right', Pong.player_right.y);
 
         Pong.draw();
 
@@ -309,13 +313,14 @@ const Game = () => {
       listen: function () {
         document.addEventListener('keydown', function (key) {
           // Handle the 'Press any key to begin' function and start the game.
-          if (key.keyCode === 87 || key.keyCode === 83) {
+          if (nickname === 'a' && (key.keyCode === 87 || key.keyCode === 83)) {
             Pong.player_left.ready = true;
-            socket.emit('left_ready', 'true');
+            socket.emit('ready', {player: nickname});
+
           }
-          if (key.keyCode === 38 || key.keyCode === 40) {
+          if (nickname === 'b' && ( key.keyCode === 38 || key.keyCode === 40)) {
             Pong.player_right.ready = true;
-            socket.emit('right_ready', 'true');
+            socket.emit('ready', {isLeftPlayer: false});
           }
           if (Pong.running === false && Pong.player_left.ready && Pong.player_right.ready) {
             Pong.running = true;

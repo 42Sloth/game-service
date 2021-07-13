@@ -80,6 +80,9 @@ const Pong = () => {
 
     socket.on('init', init);
     socket.on('drawGame', drawGame);
+    socket.on('start', () => {
+      console.log('start complete')
+    });
   }, []);
 
   return (
