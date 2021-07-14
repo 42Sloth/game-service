@@ -7,7 +7,6 @@ const ip = process.env.REACT_APP_GAME_SOCKET_IP;
 const port = process.env.REACT_APP_GAME_SOCKET_PORT;
 
 const Pong = () => {
-  console.log(ip, port);
   const socket = io(`ws://${ip}:${port}/pong`);
   let nickname = '';
 

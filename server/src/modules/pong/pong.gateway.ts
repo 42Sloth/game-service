@@ -5,13 +5,15 @@ import {
     WebSocketGateway,
     WebSocketServer,
   } from '@nestjs/websockets';
-
   import {PongService } from '../pong/pong.service'
   import { Socket, Server } from 'socket.io';
+  import * as dotenv from 'dotenv'
+  import * as path from 'path';
 
   var ready = 0;
 
-  @WebSocketGateway(81, { namespace: 'pong' })
+  dotenv.config({ path: path.join(__dirname, '../../../.env') });
+  @WebSocketGateway(+process.env.PORT, { namespace: 'pong' })
   export class PongGateway {
 
     constructor(
