@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import io from 'socket.io-client';
+import { getParameterByName } from '../utils/utils';
 
 const ip = process.env.REACT_APP_GAME_SOCKET_IP;
 const port = process.env.REACT_APP_GAME_SOCKET_PORT;
@@ -7,7 +8,6 @@ const port = process.env.REACT_APP_GAME_SOCKET_PORT;
 const Pong = () => {
   const socket = io(`ws://${ip}:${port}/pong`);
   let nickname = '';
-  let room = '';
 
   let canvas = null;
   let context = null;
@@ -29,11 +29,9 @@ const Pong = () => {
   };
 
   const draw = gameState => {
-    console.log(gameState);
     const player_left = gameState.players[0];
     const player_right = gameState.players[1];
-    // console.log('draw');
-    // console.log(gameState);
+
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = 'black';
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -81,8 +79,6 @@ const Pong = () => {
   };
 
   const drawGame = gameState => {
-    console.log('drawGame');
-    // console.log(gameState);
     if (!context) return;
     requestAnimationFrame(() => {
       draw(gameState);
@@ -90,24 +86,20 @@ const Pong = () => {
   };
 
   useEffect(() => {
-    nickname = prompt('닉네임?');
-    if (!nickname) window.location.reload();
-    // room = prompt('방?');
-    // if (!room) window.location.reload();
+    const id = getParameterByName('id');
+    if (id === '0') {
+      nickname = prompt('닉네임?');
+      if (!nickname) window.location.reload();
+      socket.emit('ready', { player: nickname });
+      socket.on('init', init);
+    } else {
+      socket.emit('join', { roomId: id });
+    }
     canvas = document.querySelector('canvas');
     context = canvas.getContext('2d');
     canvas.width = 700;
     canvas.height = 500;
-    // draw();
-
-    socket.emit('ready', { player: nickname });
-
-    if (nickname === 'join') socket.emit('join');
-    socket.on('init', init);
     socket.on('drawGame', drawGame);
-    // socket.on('start', () => {
-    //   console.log('start complete');
-    // });
   }, []);
 
   return (
