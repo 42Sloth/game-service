@@ -7,13 +7,11 @@ import { userToRoom, roomToGame, IroomToGame,  matchQueue } from './pong.gateway
 export class PongController {
 
 	@Get('/list')
-	getAllList(): PongListResponseDto{
-		const list: PongListResponseDto = {};
+	getAllList(): PongListResponseDto[]{
+		const list: PongListResponseDto[] = [];
 		for(let key of Object.keys(roomToGame)) {
-			const strs: string[] = [];
-			strs.push(roomToGame[key].players[0].username);
-			strs.push(roomToGame[key].players[1].username);
-			list[key] = strs;
+			const ele: PongListResponseDto = new PongListResponseDto(key, roomToGame[key].players[0].username, roomToGame[key].players[1].username);
+			list.push(ele);
 		}
 		return list;
 	}

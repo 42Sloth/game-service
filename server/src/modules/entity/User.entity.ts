@@ -3,11 +3,11 @@ import { Game } from "../pong/pong";
 
 export class User {
 
-	public nickname: string;
+	public username: string;
 	public client: Socket;
 
-	constructor(nickname: string, client: Socket) {
-		this.nickname = nickname;
+	constructor(username: string, client: Socket) {
+		this.username = username;
 		this.client = client;
 	}
 
