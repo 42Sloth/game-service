@@ -14,7 +14,7 @@ import { User } from '../entity/User.entity';
 import { v4 as uuid } from 'uuid';
 
 
-  interface IroomToGame {
+  export interface IroomToGame {
     [roomId: string]: Game;
   }
 
@@ -22,9 +22,9 @@ import { v4 as uuid } from 'uuid';
     [username: string]: string;
   }
 
-  const userToRoom: IuserToRoom = {};
-  const roomToGame: IroomToGame = {};
-  const matchQueue: User[] = [];
+  export const userToRoom: IuserToRoom = {};
+  export const roomToGame: IroomToGame = {};
+  export const matchQueue: User[] = [];
 
   dotenv.config({ path: path.join(__dirname, '../../../.env') });
   @WebSocketGateway(+process.env.PORT, { namespace: 'pong' })
@@ -62,6 +62,13 @@ import { v4 as uuid } from 'uuid';
           this.pongService.startInterval(this.server, roomId, game)
           this.server.to(roomId).emit('init');
         }
+    }
+
+    // body : { roomId : '131242fwef' }
+    @SubscribeMessage('join')
+    playerJoin(@ConnectedSocket() client: Socket, @MessageBody() body) {
+      client.join(body.roomId);
+      // this.pongService.startInterval(this.server, body.roomId, roomToGame[body.roomId]);
     }
 
     @SubscribeMessage('key-action')
