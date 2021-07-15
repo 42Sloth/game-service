@@ -13,11 +13,13 @@ const Pong = () => {
   let context = null;
 
   const keydown = e => {
-    socket.emit('key-action', { player: nickname, type: 'down', keyCode: e.keyCode, room: room });
+    if (e.keyCode === 38 || e.keyCode === 40)
+      socket.emit('key-action', { player: nickname, type: 'down', keyCode: e.keyCode });
   };
 
   const keyup = e => {
-    socket.emit('key-action', { player: nickname, type: 'up', keyCode: e.keyCode, room: room });
+    if (e.keyCode === 38 || e.keyCode === 40)
+      socket.emit('key-action', { player: nickname, type: 'up', keyCode: e.keyCode });
   };
 
   const init = () => {
@@ -27,6 +29,9 @@ const Pong = () => {
   };
 
   const draw = gameState => {
+    console.log(gameState);
+    const player_left = gameState.players[0];
+    const player_right = gameState.players[1];
     // console.log('draw');
     // console.log(gameState);
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -35,19 +40,9 @@ const Pong = () => {
     context.fillStyle = 'white';
 
     // draw player1
-    context.fillRect(
-      gameState.player_left.x,
-      gameState.player_left.y,
-      gameState.player_left.width,
-      gameState.player_left.height
-    );
+    context.fillRect(player_left.x, player_left.y, player_left.width, player_left.height);
     // draw player2
-    context.fillRect(
-      gameState.player_right.x,
-      gameState.player_right.y,
-      gameState.player_right.width,
-      gameState.player_right.height
-    );
+    context.fillRect(player_right.x, player_right.y, player_right.width, player_right.height);
 
     // draw ball
     context.fillRect(
@@ -67,10 +62,10 @@ const Pong = () => {
     context.stroke();
 
     // draw the players score (left)
-    context.fillText(gameState.player_left.score.toString(), canvas.width / 2 - 300, 200);
+    context.fillText(player_left.score.toString(), canvas.width / 2 - 300, 200);
 
     // draw the paddles score (right)
-    context.fillText(gameState.player_right.score.toString(), canvas.width / 2 + 300, 200);
+    context.fillText(player_right.score.toString(), canvas.width / 2 + 300, 200);
 
     // change the font size for the center score text
     context.font = '30px Courier New';
@@ -97,16 +92,17 @@ const Pong = () => {
   useEffect(() => {
     nickname = prompt('닉네임?');
     if (!nickname) window.location.reload();
-    room = prompt('방?');
-    if (!room) window.location.reload();
+    // room = prompt('방?');
+    // if (!room) window.location.reload();
     canvas = document.querySelector('canvas');
     context = canvas.getContext('2d');
     canvas.width = 700;
     canvas.height = 500;
     // draw();
 
-    socket.emit('ready', { player: nickname, room: room });
+    socket.emit('ready', { player: nickname });
 
+    if (nickname === 'join') socket.emit('join');
     socket.on('init', init);
     socket.on('drawGame', drawGame);
     // socket.on('start', () => {

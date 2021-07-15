@@ -22,15 +22,11 @@ export class PongService {
     updatePaddle(info, game) {
 
         if (info.type === 'up') {
-            if (info.keyCode === 87 || info.keyCode == 83)
-                game.player_left.move = DIRECTION.IDLE;
-            else
-                game.player_right.move = DIRECTION.IDLE;
+            if (info.keyCode === 38) game.players[game.leftOrRight[info.player]].move = DIRECTION.IDLE;
+            if (info.keyCode === 40) game.players[game.leftOrRight[info.player]].move = DIRECTION.IDLE;
         } else if (info.type === 'down') {
-            if (info.keyCode === 87) game.player_left.move = DIRECTION.UP;
-            if (info.keyCode === 83) game.player_left.move = DIRECTION.DOWN;
-            if (info.keyCode === 38) game.player_right.move = DIRECTION.UP;
-            if (info.keyCode === 40) game.player_right.move = DIRECTION.DOWN;
+            if (info.keyCode === 38) game.players[game.leftOrRight[info.player]].move = DIRECTION.UP;
+            if (info.keyCode === 40) game.players[game.leftOrRight[info.player]].move = DIRECTION.DOWN;
         }
     }
 

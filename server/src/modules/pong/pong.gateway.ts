@@ -10,19 +10,21 @@ import {
   import * as dotenv from 'dotenv'
   import * as path from 'path';
 import { Game } from './pong';
+import { User } from '../entity/User.entity';
+import { v4 as uuid } from 'uuid';
 
-  var ready = 0;
 
-  interface ICount {
-    [room: string]: number; // [room] = count
+  interface IroomToGame {
+    [roomId: string]: Game;
   }
 
-  interface IGame {
-    [room: string]: Game;
+  interface IuserToRoom {
+    [username: string]: string;
   }
 
-  const clientRooms: ICount = {};
-  const clientGames: IGame = {};
+  const userToRoom: IuserToRoom = {};
+  const roomToGame: IroomToGame = {};
+  const matchQueue: User[] = [];
 
   dotenv.config({ path: path.join(__dirname, '../../../.env') });
   @WebSocketGateway(+process.env.PORT, { namespace: 'pong' })
@@ -37,25 +39,34 @@ import { Game } from './pong';
     @SubscribeMessage('ready')
     playerReadyProc(@ConnectedSocket() client: Socket, @MessageBody() body) {
         console.log('ready in ')
-        const room = body.room;
-        client.join(room);
-        ready++;
-        if (!clientRooms[room]) {
-          clientRooms[room] = 1;
-        } else {
-          clientRooms[room]++;
+        const username = body.player;
+        if (userToRoom[username]) {
+          const roomId = userToRoom[username];
+          client.join(roomId);
+          this.server.to(roomId).emit('init');
+          return ;
         }
-        if (clientRooms[room] === 2) {
+        matchQueue.push(new User(username, client));
+        if (matchQueue.length === 2) {
+          const user1 = matchQueue.shift();
+          const user2 = matchQueue.shift();
+          const roomId = uuid();
+          userToRoom[user1.nickname] = roomId;
+          userToRoom[user2.nickname] = roomId;
           const game = new Game();
-          clientGames[room] = game;
-          this.pongService.startInterval(this.server, room, game);
-          this.server.to(room).emit('init');
+          game.leftOrRight[user1.nickname] = 0;
+          game.leftOrRight[user2.nickname] = 1;
+          roomToGame[roomId] = game;
+          user1.client.join(roomId);
+          user2.client.join(roomId);
+          this.pongService.startInterval(this.server, roomId, game)
+          this.server.to(roomId).emit('init');
         }
     }
 
     @SubscribeMessage('key-action')
     playerKeyPressed(@ConnectedSocket() client: Socket, @MessageBody() body) {
-        this.pongService.updatePaddle(body, clientGames[body.room]);
+        this.pongService.updatePaddle(body, roomToGame[userToRoom[body.player]]);
     }
 
   }
