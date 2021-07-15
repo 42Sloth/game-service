@@ -53,7 +53,7 @@ import { v4 as uuid } from 'uuid';
           const roomId = uuid();
           userToRoom[user1.nickname] = roomId;
           userToRoom[user2.nickname] = roomId;
-          const game = new Game();
+          const game = new Game(user1.nickname, user2.nickname);
           game.leftOrRight[user1.nickname] = 0;
           game.leftOrRight[user2.nickname] = 1;
           roomToGame[roomId] = game;

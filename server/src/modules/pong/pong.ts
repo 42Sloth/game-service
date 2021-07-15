@@ -44,8 +44,9 @@ class Paddle {
     move: number;
     speed: number;
     ready: boolean;
+    username: string;
 
-    constructor(side){
+    constructor(side, username){
         this.width =18;
         this.height = 70;
         this.x = side === 'left' ? 150 : 550;
@@ -54,6 +55,7 @@ class Paddle {
         this.move = DIRECTION.IDLE;
         this.speed = 10;
         this.ready = false;
+        this.username = username;
     }
 }
 
@@ -72,10 +74,10 @@ export class Game {
     color: string;
     leftOrRight: ISide;
 
-    constructor() {
+    constructor(leftUser, rightUser) {
     this.players = [];
-    this.players.push(new Paddle('left'));
-    this.players.push(new Paddle('right'));
+    this.players.push(new Paddle('left', leftUser));
+    this.players.push(new Paddle('right', rightUser));
     this.ball = new Ball(2);
     this.running = false;
     this.over = false;
