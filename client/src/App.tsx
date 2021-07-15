@@ -1,15 +1,16 @@
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import './App.css';
-import Game from './Game';
-import Chat from './Chat';
-import Pong from './Pong';
+import Pong from './components/Pong';
+import Home from './components/Home';
 
 const App: React.FC = () => {
   return (
-    <div>
-      {/* <Chat/> */}
-      {/* <Game /> */}
-      <Pong/>
-    </div>
+    <BrowserRouter>
+    <Switch>
+      <Route path='/' exact component={Home}/>
+      <Route path='/game' component={Pong}/>
+    </Switch>
+    </BrowserRouter>
   );
 }
 
