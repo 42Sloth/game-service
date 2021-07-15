@@ -1,24 +1,23 @@
 import { useEffect } from 'react';
 import io from 'socket.io-client';
-import dotenv from 'dotenv';
 
-dotenv.config();
 const ip = process.env.REACT_APP_GAME_SOCKET_IP;
 const port = process.env.REACT_APP_GAME_SOCKET_PORT;
 
 const Pong = () => {
   const socket = io(`ws://${ip}:${port}/pong`);
   let nickname = '';
+  let room = '';
 
   let canvas = null;
   let context = null;
 
   const keydown = e => {
-    socket.emit('key-action', { player: nickname, type: 'down', keyCode: e.keyCode });
+    socket.emit('key-action', { player: nickname, type: 'down', keyCode: e.keyCode, room: room });
   };
 
   const keyup = e => {
-    socket.emit('key-action', { player: nickname, type: 'up', keyCode: e.keyCode });
+    socket.emit('key-action', { player: nickname, type: 'up', keyCode: e.keyCode, room: room });
   };
 
   const init = () => {
@@ -98,19 +97,21 @@ const Pong = () => {
   useEffect(() => {
     nickname = prompt('닉네임?');
     if (!nickname) window.location.reload();
+    room = prompt('방?');
+    if (!room) window.location.reload();
     canvas = document.querySelector('canvas');
     context = canvas.getContext('2d');
     canvas.width = 700;
     canvas.height = 500;
     // draw();
 
-    socket.emit('ready', { player: nickname });
+    socket.emit('ready', { player: nickname, room: room });
 
     socket.on('init', init);
     socket.on('drawGame', drawGame);
-    socket.on('start', () => {
-      console.log('start complete');
-    });
+    // socket.on('start', () => {
+    //   console.log('start complete');
+    // });
   }, []);
 
   return (

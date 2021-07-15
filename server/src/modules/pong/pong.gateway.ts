@@ -9,8 +9,20 @@ import {
   import { Socket, Server } from 'socket.io';
   import * as dotenv from 'dotenv'
   import * as path from 'path';
+import { Game } from './pong';
 
   var ready = 0;
+
+  interface ICount {
+    [room: string]: number; // [room] = count
+  }
+
+  interface IGame {
+    [room: string]: Game;
+  }
+
+  const clientRooms: ICount = {};
+  const clientGames: IGame = {};
 
   dotenv.config({ path: path.join(__dirname, '../../../.env') });
   @WebSocketGateway(+process.env.PORT, { namespace: 'pong' })
@@ -23,24 +35,27 @@ import {
     server: Server;
 
     @SubscribeMessage('ready')
-    playerReadyProc(@ConnectedSocket() client: Socket, @MessageBody() playerName) {
+    playerReadyProc(@ConnectedSocket() client: Socket, @MessageBody() body) {
         console.log('ready in ')
+        const room = body.room;
+        client.join(room);
         ready++;
-        if (ready >= 2) {
-        // console.log('ready in 2')
-        // client.emit('start');
-        this.pongService.startInterval(client);
-        client.emit('init');
+        if (!clientRooms[room]) {
+          clientRooms[room] = 1;
+        } else {
+          clientRooms[room]++;
+        }
+        if (clientRooms[room] === 2) {
+          const game = new Game();
+          clientGames[room] = game;
+          this.pongService.startInterval(this.server, room, game);
+          this.server.to(room).emit('init');
         }
     }
 
     @SubscribeMessage('key-action')
-    playerKeyPressed(@ConnectedSocket() client: Socket, @MessageBody() info) {
-        this.pongService.updatePaddle(info);
+    playerKeyPressed(@ConnectedSocket() client: Socket, @MessageBody() body) {
+        this.pongService.updatePaddle(body, clientGames[body.room]);
     }
 
-    // @SubscribeMessage('start')
-    // gameStart(@ConnectedSocket() client: Socket) {
-    //     console.log("start!!")
-    // }
   }

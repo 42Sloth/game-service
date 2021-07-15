@@ -67,6 +67,7 @@ export class Game {
     timer: number;
     round: number;
     color: string;
+    room: string;
 
     constructor() {
     // this.player_left = Paddle.new.call(this, 'left');
@@ -80,6 +81,7 @@ export class Game {
     this.timer = this.round = 0;
     // this.color = '#2c3e50';
     this.color = '#000000';
+    this.room = '';
 }
 
     _resetTurn(victor, loser) : void {
