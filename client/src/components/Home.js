@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const Home = () => {
-  const [list, setList] = useState([]);
+  const [gameList, setGameList] = useState([]);
 
   const getList = async () => {
     try {
       const response = await axios.get('http://localhost:3000/pong/list');
-      setList(response.data);
+      setGameList(response.data);
     } catch (err) {
       console.log(err);
     }
@@ -28,11 +28,13 @@ const Home = () => {
         click
       </button>
       <h1>게임 리스트</h1>
-      {list.map((ele, idx) => {
+      {gameList.map((game, idx) => {
         return (
-          <div key={idx}>
-            {ele}
-            <button id={ele} onClick={handleClick}>
+          <div key={idx} style={{ display: 'flex' }}>
+            <div style={{ margin: '3px' }}>{game.leftPlayer}</div>
+            <div style={{ margin: '3px' }}>vs</div>
+            <div style={{ margin: '3px' }}>{game.rightPlayer}</div>
+            <button id={game.roomId} onClick={handleClick}>
               join
             </button>
           </div>
