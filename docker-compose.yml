@@ -13,6 +13,7 @@ services:
     container_name: server
     ports:
       - '3000:3000'
+      - '5555:5555'
     links:
       - database
     depends_on:

@@ -11,4 +11,5 @@ FROM nginx:latest AS webserv
 WORKDIR /src
 
 COPY --from=build /app/build /usr/share/nginx/html
+COPY ./default.conf /etc/nginx/conf.d/
 
