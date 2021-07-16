@@ -1,0 +1,14 @@
+FROM node:10.19.0 AS build
+
+RUN mkdir app
+WORKDIR /app
+COPY . /app
+RUN npm install
+
+RUN npm run build
+
+FROM nginx:latest AS webserv
+WORKDIR /src
+
+COPY --from=build /app/build /usr/share/nginx/html
+

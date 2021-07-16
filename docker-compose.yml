@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./client
+    container_name: client
+    restart: unless-stopped
+    ports:
+      - '3001:80'
+
+  backend:
+    build: ./server
+    container_name: server
+    ports:
+      - '3000:3000'
+    links:
+      - database
+    depends_on:
+      - database
+    restart: unless-stopped
+
+  database:
+    image: postgres:13.3
+    container_name: db
+    volumes:
+      - '/var/lib/postgresql/data'
+    env_file:
+      - ./server/.postgres.env
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+
+networks:
+  default:
+    name: sloth
