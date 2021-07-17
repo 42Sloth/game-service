@@ -1,6 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { listen } from 'socket.io';
-import { GameListResponseDto } from '../dtos/GameListResponseDto';
+import { GameListResponseDto } from '../dtos/GameListResponseDto'
+import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
 import { userToRoom, roomToGame, IroomToGame,  matchQueue } from './game.gateway';
 import { GameService } from './game.service';
 
@@ -23,18 +24,24 @@ export class GameController {
 		this.gameService.insertResult(roomToGame[userToRoom['taehkim']]);
 	}
 
-	@Get('/:username/win')
+	@Get('/result/:username/win')
 	getWinCount(@Param('username') username: string): Promise<number> {
 		return this.gameService.countByUsername(username, 0);
 	}
 
-	@Get('/:username/lose')
+	@Get('/result/:username/count/lose')
 	getLoseCount(@Param('username') username: string): Promise<number> {
 		return this.gameService.countByUsername(username, 1);
 	}
 
-	@Get('/:username/all')
+	@Get('/result/:username/count/all')
 	getAllCount(@Param('username') username: string): Promise<number> {
 		return this.gameService.countByUsername(username, 2);
 	}
+
+	@Get('/result/:username/all')
+	getAll(@Param('username') username: string) : Promise<GameStatResponseDto[]> {
+		return this.gameService.findByUsername(username);
+	}
+
 }
