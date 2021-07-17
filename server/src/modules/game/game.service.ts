@@ -23,11 +23,11 @@ export class GameService {
 
     updatePaddle(info, game: Game) {
         if (info.type === 'up') {
-            if (info.keyCode === 38) game.players[game.leftOrRight[info.player]].move = DIRECTION.IDLE;
-            if (info.keyCode === 40) game.players[game.leftOrRight[info.player]].move = DIRECTION.IDLE;
+            if (info.keyCode === 38) game.players[game.leftOrRight[info.username]].move = DIRECTION.IDLE;
+            if (info.keyCode === 40) game.players[game.leftOrRight[info.username]].move = DIRECTION.IDLE;
         } else if (info.type === 'down') {
-            if (info.keyCode === 38) game.players[game.leftOrRight[info.player]].move = DIRECTION.UP;
-            if (info.keyCode === 40) game.players[game.leftOrRight[info.player]].move = DIRECTION.DOWN;
+            if (info.keyCode === 38) game.players[game.leftOrRight[info.username]].move = DIRECTION.UP;
+            if (info.keyCode === 40) game.players[game.leftOrRight[info.username]].move = DIRECTION.DOWN;
         }
     }
 
