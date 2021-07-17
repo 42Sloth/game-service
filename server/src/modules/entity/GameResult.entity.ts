@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import { Game } from "../pong/pong";
+import { Game } from "../game/game";
 
 @Entity()
 export class GameResult extends BaseEntity{

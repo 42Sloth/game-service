@@ -1,5 +1,5 @@
 import { Socket } from "socket.io";
-import { Game } from "../pong/pong";
+import { Game } from "../game/game";
 
 export class User {
 
