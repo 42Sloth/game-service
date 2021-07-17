@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { listen } from 'socket.io';
 import { PongListResponseDto } from '../dtos/PongListResponseDto';
 import { userToRoom, roomToGame, IroomToGame,  matchQueue } from './pong.gateway';
@@ -21,5 +21,20 @@ export class PongController {
 	@Get('/save')
 	saveGame(): void {
 		this.pongService.insertResult(roomToGame[userToRoom['taehkim']]);
+	}
+
+	@Get('/:username/win')
+	getWinCount(@Param('username') username: string): Promise<number> {
+		return this.pongService.countByUsername(username, 0);
+	}
+
+	@Get('/:username/lose')
+	getLoseCount(@Param('username') username: string): Promise<number> {
+		return this.pongService.countByUsername(username, 1);
+	}
+
+	@Get('/:username/all')
+	getAllCount(@Param('username') username: string): Promise<number> {
+		return this.pongService.countByUsername(username, 2);
 	}
 }
