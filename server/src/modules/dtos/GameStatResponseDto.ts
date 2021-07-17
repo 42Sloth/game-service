@@ -2,10 +2,14 @@ import { EntityRepository } from "typeorm";
 import { GameResult } from "../entity/GameResult.entity";
 
 export class GameStatResponseDto {
+	id: number;
+	playerLeft: string;
+	playerRight: string;
+	winner: string;
+	timer: number;
+	playerLeftScore: number;
+	playerRightScore: number;
 
-	constructor() {
-
-	}
 	public static fromEntity(entity: GameResult) : GameStatResponseDto {
 		return {
 			id: entity.id,
@@ -17,11 +21,5 @@ export class GameStatResponseDto {
 			timer: entity.timer
 		}
 	}
-	id: number;
-	playerLeft: string;
-	playerRight: string;
-	winner: string;
-	timer: number;
-	playerLeftScore: number;
-	playerRightScore: number;
+
 }
