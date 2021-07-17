@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PongModule } from './modules/pong/pong.module';
-import { Game } from './modules/entity/Game.entity';
+import { GameResult } from './modules/entity/GameResult.entity';
 
 @Module({
   imports: [PongModule, TypeOrmModule.forRootAsync({
@@ -13,7 +13,7 @@ import { Game } from './modules/entity/Game.entity';
         password: process.env.POSTGRES_PASSWORD,
         database: process.env.POSTGRES_DB,
         autoLoadEntities: true,
-        entities: [Game],
+        entities: [GameResult],
         synchronize: true,
         logging:true
       }),
