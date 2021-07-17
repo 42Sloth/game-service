@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import { GameResult } from '../entity/GameResult.entity';
 import {gameLoop, Game, DIRECTION} from './pong'
 
 export class PongService {
@@ -19,7 +20,7 @@ export class PongService {
     }
     }
 
-    updatePaddle(info, game) {
+    updatePaddle(info, game: Game) {
 
         if (info.type === 'up') {
             if (info.keyCode === 38) game.players[game.leftOrRight[info.player]].move = DIRECTION.IDLE;
@@ -30,4 +31,8 @@ export class PongService {
         }
     }
 
+    insertResult(game: Game) {
+        const gameResult: GameResult = new GameResult(game);
+        gameResult.save();
+    }
 }

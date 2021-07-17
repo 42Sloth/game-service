@@ -2,9 +2,11 @@ import { Controller, Get } from '@nestjs/common';
 import { listen } from 'socket.io';
 import { PongListResponseDto } from '../dtos/PongListResponseDto';
 import { userToRoom, roomToGame, IroomToGame,  matchQueue } from './pong.gateway';
+import { PongService } from './pong.service';
 
 @Controller('pong')
 export class PongController {
+	constructor(private readonly pongService: PongService) {}
 
 	@Get('/list')
 	getAllList(): PongListResponseDto[]{
@@ -14,5 +16,10 @@ export class PongController {
 			list.push(ele);
 		}
 		return list;
+	}
+
+	@Get('/save')
+	saveGame(): void {
+		this.pongService.insertResult(roomToGame[userToRoom['taehkim']]);
 	}
 }
