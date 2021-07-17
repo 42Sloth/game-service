@@ -1,4 +1,4 @@
-export class PongListResponseDto {
+export class GameListResponseDto {
 	roomId: string;
 	leftPlayer: string;
 	rightPlayer: string;

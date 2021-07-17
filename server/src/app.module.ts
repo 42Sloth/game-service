@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PongModule } from './modules/pong/pong.module';
+import { GameModule } from './modules/game/game.module';
 import { GameResult } from './modules/entity/GameResult.entity';
 
 @Module({
-  imports: [PongModule, TypeOrmModule.forRootAsync({
+  imports: [GameModule, TypeOrmModule.forRootAsync({
       useFactory: async () => ({
         type: 'postgres',
         host: process.env.POSTGRES_IP,

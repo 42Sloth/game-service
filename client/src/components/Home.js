@@ -9,7 +9,7 @@ const Home = () => {
 
   const getList = async () => {
     try {
-      const response = await axios.get(`http://${ip}:${port}/pong/list`);
+      const response = await axios.get(`http://${ip}:${port}/game/list`);
       setGameList(response.data);
     } catch (err) {
       console.log(err);

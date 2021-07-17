@@ -5,21 +5,21 @@ import { getParameterByName } from '../utils/utils';
 const ip = process.env.REACT_APP_GAME_SOCKET_IP;
 const port = process.env.REACT_APP_GAME_SOCKET_PORT;
 
-const Pong = () => {
-  const socket = io(`ws://${ip}:${port}/pong`);
-  let nickname = '';
+const Game = () => {
+  const socket = io(`ws://${ip}:${port}/game`);
+  let username = '';
 
   let canvas = null;
   let context = null;
 
   const keydown = e => {
     if (e.keyCode === 38 || e.keyCode === 40)
-      socket.emit('key-action', { player: nickname, type: 'down', keyCode: e.keyCode });
+      socket.emit('key-action', { username: username, type: 'down', keyCode: e.keyCode });
   };
 
   const keyup = e => {
     if (e.keyCode === 38 || e.keyCode === 40)
-      socket.emit('key-action', { player: nickname, type: 'up', keyCode: e.keyCode });
+      socket.emit('key-action', { username: username, type: 'up', keyCode: e.keyCode });
   };
 
   const init = () => {
@@ -88,9 +88,9 @@ const Pong = () => {
   useEffect(() => {
     const id = getParameterByName('id');
     if (id === '0') {
-      nickname = prompt('닉네임?');
-      if (!nickname) window.location.reload();
-      socket.emit('ready', { player: nickname });
+      username = prompt('닉네임?');
+      if (!username) window.location.reload();
+      socket.emit('ready', { username: username });
       socket.on('init', init);
     } else {
       socket.emit('join', { roomId: id });
@@ -109,4 +109,4 @@ const Pong = () => {
   );
 };
 
-export default Pong;
+export default Game;

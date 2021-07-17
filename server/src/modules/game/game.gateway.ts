@@ -5,11 +5,11 @@ import {
     WebSocketGateway,
     WebSocketServer,
   } from '@nestjs/websockets';
-  import {PongService } from '../pong/pong.service'
+  import {GameService } from './game.service'
   import { Socket, Server } from 'socket.io';
   import * as dotenv from 'dotenv'
   import * as path from 'path';
-import { Game } from './pong';
+import { Game } from './game';
 import { User } from '../entity/User.entity';
 import { v4 as uuid } from 'uuid';
 
@@ -27,11 +27,11 @@ import { v4 as uuid } from 'uuid';
   export const matchQueue: User[] = [];
 
   dotenv.config({ path: path.join(__dirname, '../../../.env') });
-  @WebSocketGateway(+process.env.PORT, { namespace: 'pong' })
-  export class PongGateway {
+  @WebSocketGateway(+process.env.PORT, { namespace: 'game' })
+  export class GameGateway {
 
     constructor(
-        private readonly pongService: PongService,
+        private readonly gameService: GameService,
       ) {}
     @WebSocketServer()
     server: Server;
@@ -39,7 +39,7 @@ import { v4 as uuid } from 'uuid';
     @SubscribeMessage('ready')
     playerReadyProc(@ConnectedSocket() client: Socket, @MessageBody() body) {
         console.log('ready in ')
-        const username = body.player;
+        const username = body.username;
         if (userToRoom[username]) {
           const roomId = userToRoom[username];
           client.join(roomId);
@@ -59,7 +59,7 @@ import { v4 as uuid } from 'uuid';
           roomToGame[roomId] = game;
           user1.client.join(roomId);
           user2.client.join(roomId);
-          this.pongService.startInterval(this.server, roomId, game)
+          this.gameService.startInterval(this.server, roomId, game)
           this.server.to(roomId).emit('init');
         }
     }
@@ -73,7 +73,7 @@ import { v4 as uuid } from 'uuid';
 
     @SubscribeMessage('key-action')
     playerKeyPressed(@ConnectedSocket() client: Socket, @MessageBody() body) {
-        this.pongService.updatePaddle(body, roomToGame[userToRoom[body.player]]);
+        this.gameService.updatePaddle(body, roomToGame[userToRoom[body.username]]);
     }
 
   }
