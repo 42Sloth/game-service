@@ -20,6 +20,10 @@ const Home = () => {
     window.location.href = `/game?id=${e.target.id}`;
   };
 
+  const handleClickStats = e => {
+    window.location.href = '/stats';
+  };
+
   useEffect(() => {
     getList();
   }, []);
@@ -43,6 +47,8 @@ const Home = () => {
           </div>
         );
       })}
+      <h1>게임 전적</h1>
+      <button onClick={handleClickStats}>show stats</button>
     </div>
   );
 };

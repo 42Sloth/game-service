@@ -1,9 +1,15 @@
+import { ObjectUnsubscribedError } from 'rxjs';
 import { Server, Socket } from 'socket.io';
 import { Not } from 'typeorm';
+import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
 import { GameResult } from '../entity/GameResult.entity';
 import {gameLoop, Game, DIRECTION} from './game'
 
 export class GameService {
+    // gameRepository;
+    // constructor() {
+    //     this.gameRepository = GameResult.getRepository();
+    // }
     startInterval(server: Server, room: string, game: Game) {
         try {
         setInterval(() =>{
@@ -56,5 +62,17 @@ export class GameService {
             ]});
         }
         return count;
+    }
+
+    async findByUsername(username: string) : Promise<GameStatResponseDto[]> {
+        const gameRepository = GameResult.getRepository();
+        const items = await gameRepository.find({
+            where: [
+                { playerLeft: username },
+                { playerRight: username }
+            ]
+        })
+        const res = items.map(item => GameStatResponseDto.fromEntity(item));
+        return res;
     }
 }
