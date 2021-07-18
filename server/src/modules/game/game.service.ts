@@ -26,7 +26,7 @@ export class GameService {
         const interval = setInterval(() =>{
             gameLoop(game);
             if (game.over === true) {
-                server.to(roomId).emit('endGame', game);
+                server.to(roomId).emit('endGame', new GameResult(game));
                 this.insertResult(game);
                 delete userToRoom[game.players[0].username];
                 delete userToRoom[game.players[1].username];

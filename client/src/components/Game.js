@@ -106,8 +106,8 @@ const Game = () => {
   const endGame = gameState => {
     document.removeEventListener('keyup', keyup);
     document.removeEventListener('keydown', keydown);
-
-    //TODO : 끝났을때 메세지창 띄우는 것
+    const msg = `winner: ${gameState.winner}\n 메인 화면으로 돌아가시겠습니까?`;
+    if (window.confirm(msg)) window.location.href = '/';
   };
 
   useEffect(() => {
