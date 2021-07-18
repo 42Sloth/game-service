@@ -21,13 +21,8 @@ import { v4 as uuid } from 'uuid';
     [username: string]: string;
   }
 
-  interface IunameToPaddle {
-    [username: string]: Paddle;
-  }
-
   export const userToRoom: IuserToRoom = {};
   export const roomToGame: IroomToGame = {};
-  export const unameToPaddle: IunameToPaddle = {};
   export const matchQueue: Paddle[] = [];
 
   dotenv.config({ path: path.join(__dirname, '../../../.env') });
@@ -58,7 +53,6 @@ import { v4 as uuid } from 'uuid';
           const game = new Game();
           const paddle: Paddle = new Paddle('left', username);
           game.players.push(paddle);
-          unameToPaddle[username] = paddle;
           matchQueue.push(paddle);
           // game.players.push(new Paddle('right', 'nothing'));
           roomToGame[roomId] = game;

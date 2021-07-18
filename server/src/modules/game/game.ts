@@ -19,14 +19,16 @@ class Ball{
     moveX: number;
     moveY: number;
     speed: number;
-    constructor(incrementedSpeed) {
+    defaultSpeed: number;
+    constructor(speed) {
         this.width =18;
         this.height = 18;
         this.x = 341;
         this.y = 241;
         this.moveX = DIRECTION.IDLE;
         this.moveY= DIRECTION.IDLE;
-        this.speed = incrementedSpeed || 12;
+        this.speed = speed;
+        this.defaultSpeed = 5;
     }
 }
 
@@ -75,28 +77,28 @@ export class Game {
 
     constructor() {
       this.players = [];
-      this.ball = new Ball(2);
+      this.ball = new Ball(5);
       this.running = false;
       this.over = false;
       this.timer = 0;
       this.color = '#000000';
       this.leftOrRight = {};
       this.isStarted = false;
-      this.endScore = 1;
+      this.endScore = 10;
       this.startAt = new Date();
       this.endAt = new Date();
     }
 
-    _resetTurn(victor, loser) : void {
-      this.ball = new Ball(this.ball.speed);
+    _resetTurn(victor, loser, ballSpeed) : void {
+      this.ball = new Ball(ballSpeed);
       this.turn = loser;
       this.timer = new Date().getTime();
       victor.score++;
     }
 
     // Wait for a delay to have passed after each turn.
-    _turnDelayIsOver() {
-      return new Date().getTime() - this.timer >= 1000;
+    _turnDelayIsOver() : boolean {
+      return (new Date().getTime() - this.timer) >= 1000;
     }
 }
 
@@ -106,9 +108,10 @@ function update(game: Game) {
       const player_left = game.players[0];
       const player_right = game.players[1];
       // If the ball collides with the bound limits - correct the x and y coords.
-      if (game.ball.x <= 0) game._resetTurn.call(game, player_right, player_left);
+      const ballNewSpeed: number = (game.ball.defaultSpeed * 2 - game.ball.defaultSpeed) / (game.endScore * 2 - 1) * game.ball.speed + game.ball.defaultSpeed;
+      if (game.ball.x <= 0) game._resetTurn.call(game, player_right, player_left, ballNewSpeed);
       if (game.ball.x >= 682)
-        game._resetTurn.call(game, player_left, player_right);
+        game._resetTurn.call(game, player_left, player_right, ballNewSpeed);
       if (game.ball.y <= 0) game.ball.moveY = DIRECTION.DOWN;
       if (game.ball.y >= 482) game.ball.moveY = DIRECTION.UP;
 
