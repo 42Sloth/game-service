@@ -109,8 +109,11 @@ const Game = () => {
     if (id === '0') {
       username = prompt('닉네임?');
       if (!username) window.location.reload();
-
       socket.emit('enter', { username: username });
+      document.addEventListener('keyup', spaceup);
+      socket.on('init', init);
+    } else if (id === '1') {
+      socket.emit('enter', { username: getParameterByName('username') });
       document.addEventListener('keyup', spaceup);
       socket.on('init', init);
     } else {
