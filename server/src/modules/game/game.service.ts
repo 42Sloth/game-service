@@ -3,6 +3,7 @@ import { Not } from 'typeorm';
 import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
 import { GameResult } from '../entity/GameResult.entity';
 import {gameLoop, Game, DIRECTION} from './game'
+import { roomToGame, userToRoom } from './game.gateway';
 
 export class GameService {
     waitingInterval(server: Server, room: string, game: Game) {
@@ -22,6 +23,9 @@ export class GameService {
             gameLoop(game);
             if (game.over === true) {
                 this.insertResult(game);
+                delete userToRoom[game.players[0].username];
+                delete userToRoom[game.players[1].username];
+                delete roomToGame[room];
                 clearInterval(interval);
             }
             server.to(room).emit('drawGame', game);
@@ -80,7 +84,10 @@ export class GameService {
             where: [
                 { playerLeft: username },
                 { playerRight: username }
-            ]
+            ],
+            order: {
+                startAt: "DESC"
+            }
         })
         const res = items.map(item => GameStatResponseDto.fromEntity(item));
         return res;
