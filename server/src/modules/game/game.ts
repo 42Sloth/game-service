@@ -1,5 +1,3 @@
-import { Socket } from "socket.io";
-
 export function gameLoop(game: Game) {
     update(game)
 }
@@ -11,10 +9,6 @@ export var DIRECTION = {
     LEFT: 3,
     RIGHT: 4
   };
-
-var rounds = [10];
-//var rounds = [2, 5, 3, 3, 2];
-var colors = ['#1abc9c', '#2ecc71', '#3498db', '#e74c3c', '#9b59b6'];
 
 // The ball object (The cube that bounces back and forth)
 class Ball{
@@ -72,34 +66,37 @@ export class Game {
     over: boolean;
     turn: Paddle;
     timer: number;
-    round: number;
     color: string;
     leftOrRight: ISide;
     isStarted: boolean;
+    endScore: number;
+    startAt: Date;
+    endAt: Date;
 
     constructor() {
-    this.players = [];
-    this.ball = new Ball(2);
-    this.running = false;
-    this.over = false;
-    this.timer = this.round = 0;
-    // this.color = '#2c3e50';
-    this.color = '#000000';
-    this.leftOrRight = {};
-    this.isStarted = false;
-}
-
-    _resetTurn(victor, loser) : void {
-    this.ball = new Ball(this.ball.speed);
-    this.turn = loser;
-    this.timer = new Date().getTime();
-    victor.score++;
-    // beep2.play();
+      this.players = [];
+      this.ball = new Ball(2);
+      this.running = false;
+      this.over = false;
+      this.timer = 0;
+      this.color = '#000000';
+      this.leftOrRight = {};
+      this.isStarted = false;
+      this.endScore = 1;
+      this.startAt = new Date();
+      this.endAt = new Date();
     }
 
-  // Wait for a delay to have passed after each turn.
+    _resetTurn(victor, loser) : void {
+      this.ball = new Ball(this.ball.speed);
+      this.turn = loser;
+      this.timer = new Date().getTime();
+      victor.score++;
+    }
+
+    // Wait for a delay to have passed after each turn.
     _turnDelayIsOver() {
-    return new Date().getTime() - this.timer >= 1000;
+      return new Date().getTime() - this.timer >= 1000;
     }
 }
 
@@ -128,7 +125,6 @@ function update(game: Game) {
       // On new serve (start of each turn) move the ball to the correct side
       // and randomize the direction to add some challenge.
       if (game._turnDelayIsOver.call(game) && game.turn) {
-        console.log('in turnDelay')
         game.ball.moveX = game.turn === player_left ? DIRECTION.LEFT : DIRECTION.RIGHT;
         game.ball.moveY = [DIRECTION.UP, DIRECTION.DOWN][Math.round(Math.random())];
         game.ball.y = Math.floor(Math.random() * 500 - 200) + 200;
@@ -175,9 +171,12 @@ function update(game: Game) {
         ) {
           game.ball.x = player_right.x - game.ball.width;
           game.ball.moveX = DIRECTION.LEFT;
-
-          // beep1.play();
         }
+      }
+
+      if (player_left.score === game.endScore || player_right.score === game.endScore) {
+        game.over = true;
+        game.endAt = new Date();
       }
     }
 }

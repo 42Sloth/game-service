@@ -11,7 +11,6 @@ import {
   import * as path from 'path';
 import { Game, Paddle } from './game';
 import { v4 as uuid } from 'uuid';
-import { UnsupportedMediaTypeException } from '@nestjs/common';
 
 
   export interface IroomToGame {
@@ -108,6 +107,7 @@ import { UnsupportedMediaTypeException } from '@nestjs/common';
           if (game.players[0].ready === true && game.players[1].ready === true)
           {
             this.server.to(roomId).emit('init');
+            game.startAt = new Date();
             game.isStarted = true;
             this.gameService.startInterval(this.server, roomId, game);
           }

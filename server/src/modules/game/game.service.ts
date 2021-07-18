@@ -1,15 +1,10 @@
-import { ObjectUnsubscribedError } from 'rxjs';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { Not } from 'typeorm';
 import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
 import { GameResult } from '../entity/GameResult.entity';
 import {gameLoop, Game, DIRECTION} from './game'
 
 export class GameService {
-    // gameRepository;
-    // constructor() {
-    //     this.gameRepository = GameResult.getRepository();
-    // }
     waitingInterval(server: Server, room: string, game: Game) {
         console.log(game);
         try {
@@ -23,9 +18,12 @@ export class GameService {
 
     startInterval(server: Server, room: string, game: Game) {
         try {
-        setInterval(() =>{
+        const interval = setInterval(() =>{
             gameLoop(game);
-            // console.log(game.ball);
+            if (game.over === true) {
+                this.insertResult(game);
+                clearInterval(interval);
+            }
             server.to(room).emit('drawGame', game);
         }, 1000 / 50)
         } catch (e) {

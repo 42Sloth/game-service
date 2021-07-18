@@ -22,11 +22,6 @@ export class GameController {
 		return list;
 	}
 
-	@Get('/save')
-	saveGame(): void {
-		this.gameService.insertResult(roomToGame[userToRoom['taehkim']]);
-	}
-
 	@Get('/result/:username/count/win')
 	getWinCount(@Param('username') username: string): Promise<number> {
 		return this.gameService.countByUsername(username, 0);

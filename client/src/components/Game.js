@@ -95,15 +95,6 @@ const Game = () => {
 
     // draw the paddles score (right)
     if (player_right) context.fillText(player_right.score.toString(), canvas.width / 2 + 300, 200);
-
-    // draw the winning score (center)
-    context.fillText('Round ' + (gameState.round + 1), canvas.width / 2, 25);
-
-    // change the font size for the center score value
-    context.font = '40px Courier';
-
-    // draw the current round number
-    context.fillText(gameState.round, canvas.width / 2, 100);
   };
 
   const drawGame = gameState => {
