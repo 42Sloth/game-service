@@ -23,10 +23,8 @@ const Game = () => {
   };
 
   const spaceup = e => {
-    console.log('key pressed', e.keyCode);
-
     if (e.keyCode === 32) {
-      console.log('key pressed', e.keyCode);
+      console.log('space up', e.keyCode);
       socket.emit('ready', { username: username, type: 'up', keyCode: e.keyCode });
     }
   };
@@ -43,7 +41,7 @@ const Game = () => {
     const player_right = gameState.players[1];
 
     context.clearRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = 'black';
+    context.fillStyle = gameState.color;
     context.fillRect(0, 0, canvas.width, canvas.height);
     // draw ready
     if (!gameState.isStarted) {
@@ -98,21 +96,33 @@ const Game = () => {
   };
 
   const drawGame = gameState => {
+    // console.log(gameState);
     if (!context) return;
     requestAnimationFrame(() => {
       draw(gameState);
     });
   };
 
+  const endGame = gameState => {
+    document.removeEventListener('keyup', keyup);
+    document.removeEventListener('keydown', keydown);
+
+    //TODO : 끝났을때 메세지창 띄우는 것
+  };
+
   useEffect(() => {
     const id = getParameterByName('id');
+    console.log(id);
     if (id === '0') {
-      username = prompt('닉네임?');
-      if (!username) window.location.reload();
+      while (!(username = prompt('닉네임?'))) {
+        alert('닉네임을 입력해주세요!');
+      }
+      console.log('reload 뚫음');
       socket.emit('enter', { username: username });
       document.addEventListener('keyup', spaceup);
       socket.on('init', init);
     } else if (id === '1') {
+      username = getParameterByName('username');
       socket.emit('enter', { username: getParameterByName('username') });
       document.addEventListener('keyup', spaceup);
       socket.on('init', init);
@@ -124,6 +134,7 @@ const Game = () => {
     canvas.width = 700;
     canvas.height = 500;
     socket.on('drawGame', drawGame);
+    socket.on('endGame', endGame);
   }, []);
 
   return (

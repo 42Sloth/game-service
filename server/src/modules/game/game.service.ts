@@ -2,8 +2,12 @@ import { Server } from 'socket.io';
 import { Not } from 'typeorm';
 import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
 import { GameResult } from '../entity/GameResult.entity';
-import {gameLoop, Game, DIRECTION} from './game'
-import { roomToGame, userToRoom } from './game.gateway';
+import {gameLoop, Game, DIRECTION, Paddle} from './game'
+import { matchQueue, roomToGame, userToRoom } from './game.gateway';
+import { v4 as uuid } from 'uuid';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+import { NotAcceptableException } from '@nestjs/common';
+
 
 export class GameService {
     waitingInterval(server: Server, room: string, game: Game) {
@@ -17,18 +21,19 @@ export class GameService {
             }
     }
 
-    startInterval(server: Server, room: string, game: Game) {
+    startInterval(server: Server, roomId: string, game: Game) {
         try {
         const interval = setInterval(() =>{
             gameLoop(game);
             if (game.over === true) {
+                server.to(roomId).emit('endGame', game);
                 this.insertResult(game);
                 delete userToRoom[game.players[0].username];
                 delete userToRoom[game.players[1].username];
-                delete roomToGame[room];
+                delete roomToGame[roomId];
                 clearInterval(interval);
             }
-            server.to(room).emit('drawGame', game);
+            server.to(roomId).emit('drawGame', game);
         }, 1000 / 50)
         } catch (e) {
             console.log(e);
@@ -43,6 +48,35 @@ export class GameService {
             if (info.keyCode === 38) game.players[game.leftOrRight[info.username]].move = DIRECTION.UP;
             if (info.keyCode === 40) game.players[game.leftOrRight[info.username]].move = DIRECTION.DOWN;
         }
+    }
+
+    createDefaultRoom(username: string) : string {
+        if (!username)
+            throw (NotAcceptableException);
+        const roomId = uuid();
+        // const roomId = uuid();
+        const game = new Game();
+        const paddle: Paddle = new Paddle('left', username);
+        game.players.push(paddle);
+        matchQueue.push(paddle);
+        roomToGame[roomId] = game;
+        userToRoom[username] = roomId;
+        game.leftOrRight[username] = 0;
+        return roomId;
+    }
+
+    createCustomRoom(data) : string {
+        const roomId = this.createDefaultRoom(data.username);
+        const game: Game = roomToGame[roomId];
+        game.ball.setSpeedByType(data.speed);
+        game.color = data.mapColor;
+        // TODO:  roomName, ball 처리 해야함
+        if (data.type === 'private')
+            game.setPrivate(data.password);
+        // else
+        //     matchQueue.push(game.players[0]);
+        console.log(game.players);
+        return roomId;
     }
 
     insertResult(game: Game) {

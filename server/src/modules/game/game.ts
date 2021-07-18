@@ -10,6 +10,12 @@ export var DIRECTION = {
     RIGHT: 4
   };
 
+enum SpeedEnum {
+  Slow = "slow",
+  Moderate = "moderate",
+  Fast = "fast"
+};
+
 // The ball object (The cube that bounces back and forth)
 class Ball{
     width: number;
@@ -20,6 +26,7 @@ class Ball{
     moveY: number;
     speed: number;
     defaultSpeed: number;
+
     constructor(speed) {
         this.width =18;
         this.height = 18;
@@ -29,6 +36,15 @@ class Ball{
         this.moveY= DIRECTION.IDLE;
         this.speed = speed;
         this.defaultSpeed = 5;
+    }
+
+    setSpeedByType(type: SpeedEnum) {
+        if (type === 'slow')
+            this.speed = 3;
+        else if (type === 'moderate')
+            this.speed = 4;
+        else if (type === 'fast')
+            this.speed = 5;
     }
 }
 
@@ -74,6 +90,8 @@ export class Game {
     endScore: number;
     startAt: Date;
     endAt: Date;
+    access: boolean;
+    password: string;
 
     constructor() {
       this.players = [];
@@ -84,9 +102,15 @@ export class Game {
       this.color = '#000000';
       this.leftOrRight = {};
       this.isStarted = false;
-      this.endScore = 10;
+      this.endScore = 1;
       this.startAt = new Date();
       this.endAt = new Date();
+      this.access = true;
+    }
+
+    setPrivate(password: string) {
+      this.access = false;
+      this.password = password;
     }
 
     _resetTurn(victor, loser, ballSpeed) : void {

@@ -6,7 +6,7 @@ const ip = process.env.REACT_APP_GAME_SERVER_IP;
 const port = process.env.REACT_APP_GAME_SERVER_PORT;
 const res_url = `http://${ip}:${port}`;
 
-const colors = { 0: '#ff000', 1: '#ffff00', 2: '#00ff00', 3: '#0000ff' };
+const colors = { 0: '#ff0000', 1: '#ffff00', 2: '#00ff00', 3: '#0000ff' };
 
 const Home = () => {
   const [gameList, setGameList] = useState([]);
@@ -41,7 +41,7 @@ const Home = () => {
     try {
       roomInfo['mapColor'] = colors[roomInfo['mapColor']];
       const response = await axios.post(`${res_url}/game/new`, roomInfo);
-      window.location.href = `/game?id=1?username=${roomInfo.username}`;
+      window.location.href = `/game?id=1&username=${roomInfo.username}`;
     } catch (err) {
       console.log(err);
     }

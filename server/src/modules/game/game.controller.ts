@@ -1,4 +1,5 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Post } from '@nestjs/common';
+import { MessageBody } from '@nestjs/websockets';
 import { listen } from 'socket.io';
 import { GameListResponseDto } from '../dtos/GameListResponseDto'
 import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
@@ -9,6 +10,12 @@ import { GameService } from './game.service';
 export class GameController {
 	constructor(private readonly gameService: GameService) {}
 
+	// FE측은 POST로 여기로 날려주고, socket-> 'enter'로 접속해주어야 함.
+	@Post('/new')
+	createCustomRoom(@MessageBody() body): string {
+		return this.gameService.createCustomRoom(body);
+	}
+
 	@Get('/list')
 	getAllList(): GameListResponseDto[]{
 		const list: GameListResponseDto[] = [];
@@ -16,6 +23,9 @@ export class GameController {
 			const game = roomToGame[key];
 			if (game.players.length === 2) {
 				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, game.players[1].username);
+				list.push(ele);
+			} else if (game.players.length === 1) {
+				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, 'waiting');
 				list.push(ele);
 			}
 		}
@@ -41,5 +51,7 @@ export class GameController {
 	getAll(@Param('username') username: string) : Promise<GameStatResponseDto[]> {
 		return this.gameService.findByUsername(username);
 	}
+
+
 
 }
