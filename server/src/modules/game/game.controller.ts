@@ -1,8 +1,9 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Param, Post, Req, Res } from '@nestjs/common';
 import { MessageBody } from '@nestjs/websockets';
 import { listen } from 'socket.io';
 import { GameListResponseDto } from '../dtos/GameListResponseDto'
 import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
+import { Game } from './game';
 import { userToRoom, roomToGame, IroomToGame,  matchQueue } from './game.gateway';
 import { GameService } from './game.service';
 
@@ -15,6 +16,37 @@ export class GameController {
 	createCustomRoom(@MessageBody() body): string {
 		return this.gameService.createCustomRoom(body);
 	}
+
+	@Post('checkRoomValidate')
+	checkRoomEnterValidate(@MessageBody() body) {
+		if (!body.roomId || !roomToGame[body.roomId])
+			throw new HttpException({
+				status: HttpStatus.BAD_REQUEST,
+				error: 'roomId가 잘못 되었습니다.'},
+				HttpStatus.BAD_REQUEST);
+		const game: Game = roomToGame[body.roomId];
+		if (game.access === false) {
+			if (!body.password || body.password !== game.password)
+				throw new HttpException({
+					status: HttpStatus.BAD_REQUEST,
+					error: '잘못된 패스워드 혹은 roomID 입니다.'},
+					HttpStatus.BAD_REQUEST);
+		}
+		if (game.players.length == 2)
+			throw new HttpException({
+				status: HttpStatus.CONFLICT,
+				error: '방이 꽉 찼습니다.'},
+				HttpStatus.CONFLICT);
+		throw new HttpException({
+			status: HttpStatus.OK,
+			error: '입장 가능하십니다.'
+		}, HttpStatus.OK);
+	}
+
+	// @Post('/out')
+	// exitRoom(@MessageBody() body): string {
+	// 	return this.gameService.exitRoom(body);
+	// }
 
 	@Get('/list')
 	getAllList(): GameListResponseDto[]{

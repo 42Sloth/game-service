@@ -10,7 +10,7 @@ import {
   import * as dotenv from 'dotenv'
   import * as path from 'path';
 import { Game, Paddle } from './game';
-import { NotAcceptableException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotAcceptableException } from '@nestjs/common';
 
 
   export interface IroomToGame {
@@ -35,20 +35,20 @@ import { NotAcceptableException } from '@nestjs/common';
     @WebSocketServer()
     server: Server;
 
-    @SubscribeMessage('enter')
-    playerEnter(@ConnectedSocket() client: Socket, @MessageBody() body) {
+    @SubscribeMessage('fastEnter')
+    fastEnter(@ConnectedSocket() client: Socket, @MessageBody() body) {
       console.log('enter in');
       try {
         const username = body.username;
         if (!username)
-          throw NotAcceptableException;
+          throw BadRequestException;
         // 사용자가 자기가 진행하고 있던 게임 방에 접속했을 때
         if (userToRoom[username]) {
           const roomId = userToRoom[username];
           const game = roomToGame[roomId];
           client.join(roomId);
           if (game.isStarted)
-            this.server.to(roomId).emit('init');
+            this.server.to(roomId).emit('permitToCtrl');
           else {
             console.log('here-===============')
             this.gameService.waitingInterval(this.server, roomId, game);
@@ -86,6 +86,27 @@ import { NotAcceptableException } from '@nestjs/common';
       }
     }
 
+    @SubscribeMessage('selectEnter')
+    selectEnter(@ConnectedSocket() client: Socket, @MessageBody() body) {
+      // roomID가 없거나 username이 없거나 유효하지 않은 roomID인 경우
+      if (!body.roomId || !body.username || roomToGame[body.roomId])
+        throw BadRequestException;
+      const game: Game = roomToGame[body.roomId];
+      //TODO: 비번 걸려있으면 해제하는 로직 작성해야 함.
+      if (!body.password || (game.access === false && game.password !== body.password))
+        throw BadRequestException;
+      if (game.access === true)
+        matchQueue.shift();
+      const roomGuest: Paddle = new Paddle('right', body.username);
+      game.turn = roomGuest;
+      game.players.push(roomGuest);
+      userToRoom[roomGuest.username] = body.roomId;
+      game.players[1].username = roomGuest.username;
+      game.leftOrRight[roomGuest.username] = 1;
+      client.join(body.roomId);
+      this.gameService.waitingInterval(this.server, body.roomId, game);
+    }
+
     @SubscribeMessage('ready')
     playerReady(@ConnectedSocket() client: Socket, @MessageBody() body) {
         console.log('ready in ')
@@ -108,7 +129,7 @@ import { NotAcceptableException } from '@nestjs/common';
         if (game.players.length === 2) {
           if (game.players[0].ready === true && game.players[1].ready === true)
           {
-            this.server.to(roomId).emit('init');
+            this.server.to(roomId).emit('permitToCtrl');
             game.startAt = new Date();
             game.isStarted = true;
             this.gameService.startInterval(this.server, roomId, game);
@@ -117,7 +138,7 @@ import { NotAcceptableException } from '@nestjs/common';
     }
 
     // body : { roomId : '131242fwef' }
-    @SubscribeMessage('join')
+    @SubscribeMessage('spectEnter')
     playerJoin(@ConnectedSocket() client: Socket, @MessageBody() body) {
       const game: Game = roomToGame[body.roomId];
       client.join(body.roomId);
