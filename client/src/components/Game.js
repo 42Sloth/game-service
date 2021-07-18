@@ -6,7 +6,7 @@ const ip = process.env.REACT_APP_GAME_SOCKET_IP;
 const port = process.env.REACT_APP_GAME_SOCKET_PORT;
 
 const Game = () => {
-  const socket = io(`ws://${ip}:${port}/game`);
+  const socket = io(`ws://${ip}:${port}/game`); // client가 가지고있는 server랑 통신할 수 있는 유일한 통로
   let username = '';
 
   let canvas = null;
