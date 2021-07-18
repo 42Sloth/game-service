@@ -54,10 +54,10 @@ export class GameController {
 		for(let key of Object.keys(roomToGame)) {
 			const game = roomToGame[key];
 			if (game.players.length === 2) {
-				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, game.players[1].username);
+				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, game.players[1].username, game.access === true ? 'public': 'private');
 				list.push(ele);
 			} else if (game.players.length === 1) {
-				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, 'waiting');
+				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, 'waiting', game.access === true ? 'public': 'private');
 				list.push(ele);
 			}
 		}

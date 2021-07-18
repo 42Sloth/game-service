@@ -71,7 +71,7 @@ export class GameService {
         game.ball.setSpeedByType(data.speed);
         game.color = data.mapColor;
         // TODO:  roomName, ball 처리 해야함
-        if (data.type === 'private')
+        if (data.access === 'private')
             game.setPrivate(data.password);
         // else
         //     matchQueue.push(game.players[0]);

@@ -24,13 +24,12 @@ const Game = () => {
 
   const spaceup = e => {
     if (e.keyCode === 32) {
-      console.log('space up', e.keyCode);
       socket.emit('ready', { username: username, type: 'up', keyCode: e.keyCode });
     }
   };
 
-  const init = () => {
-    console.log('init');
+  const permitToCtrl = () => {
+    console.log('permitToCtrl');
     document.removeEventListener('keyup', spaceup);
     document.addEventListener('keydown', keydown);
     document.addEventListener('keyup', keyup);
@@ -96,7 +95,6 @@ const Game = () => {
   };
 
   const drawGame = gameState => {
-    // console.log(gameState);
     if (!context) return;
     requestAnimationFrame(() => {
       draw(gameState);
@@ -111,23 +109,41 @@ const Game = () => {
   };
 
   useEffect(() => {
+    // /game?id=${e.target.id}&type=0
+    // /game?id=${type}&type=${type}&username=${roomInfo.username}
+    // /game?id=${e.target.id}&type=2
+    // /game?id=${e.target.id}&type=3
+    const type = getParameterByName('type');
     const id = getParameterByName('id');
-    console.log(id);
-    if (id === '0') {
+    // 빠른 시작
+    if (type === '0') {
       while (!(username = prompt('닉네임?'))) {
         alert('닉네임을 입력해주세요!');
       }
-      console.log('reload 뚫음');
-      socket.emit('enter', { username: username });
+      socket.emit('fastEnter', { username: username });
       document.addEventListener('keyup', spaceup);
-      socket.on('init', init);
-    } else if (id === '1') {
+      socket.on('permitToCtrl', permitToCtrl);
+    }
+    // 방 만들기
+    else if (type === '1') {
       username = getParameterByName('username');
-      socket.emit('enter', { username: getParameterByName('username') });
+      console.log(id, username);
+      socket.emit('selectEnter', { roomId: id, username: username });
       document.addEventListener('keyup', spaceup);
-      socket.on('init', init);
-    } else {
-      socket.emit('join', { roomId: id });
+      socket.on('permitToCtrl', permitToCtrl);
+    }
+    // 플레이어로 게임 참여
+    else if (type === '2') {
+      while (!(username = prompt('닉네임?'))) {
+        alert('닉네임을 입력해주세요!');
+      }
+      socket.emit('selectEnter', { roomId: id, username: username });
+      document.addEventListener('keyup', spaceup);
+      socket.on('permitToCtrl', permitToCtrl);
+    }
+    // 게임 관전
+    else if (type === '3') {
+      socket.emit('spectEnter', { roomId: id });
     }
     canvas = document.querySelector('canvas');
     context = canvas.getContext('2d');

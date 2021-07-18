@@ -89,12 +89,25 @@ import { BadRequestException, ConflictException, NotAcceptableException } from '
     @SubscribeMessage('selectEnter')
     selectEnter(@ConnectedSocket() client: Socket, @MessageBody() body) {
       // roomID가 없거나 username이 없거나 유효하지 않은 roomID인 경우
-      if (!body.roomId || !body.username || roomToGame[body.roomId])
+      if (!body.roomId || !body.username || !roomToGame[body.roomId]) {
         throw BadRequestException;
+      }
       const game: Game = roomToGame[body.roomId];
+      if (userToRoom[body.username]) {
+        const roomId = userToRoom[body.username];
+        const game = roomToGame[roomId];
+        client.join(roomId);
+        if (game.isStarted)
+          this.server.to(roomId).emit('permitToCtrl');
+        else {
+          console.log('here-===============')
+          this.gameService.waitingInterval(this.server, roomId, game);
+        }
+        return ;
+      }
       //TODO: 비번 걸려있으면 해제하는 로직 작성해야 함.
-      if (!body.password || (game.access === false && game.password !== body.password))
-        throw BadRequestException;
+      // if (game.access === false && game.password !== body.password)
+      //   throw BadRequestException;
       if (game.access === true)
         matchQueue.shift();
       const roomGuest: Paddle = new Paddle('right', body.username);
