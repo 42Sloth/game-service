@@ -1,3 +1,5 @@
+import { Socket } from "socket.io";
+
 export function gameLoop(game: Game) {
     update(game)
 }
@@ -35,7 +37,7 @@ class Ball{
 }
 
 // The paddle object (The two lines that move up and down)
-class Paddle {
+export class Paddle {
     width: number;
     height: number;
     x: number;
@@ -43,8 +45,8 @@ class Paddle {
     score: number;
     move: number;
     speed: number;
-    ready: boolean;
     username: string;
+    ready: boolean;
 
     constructor(side, username){
         this.width =18;
@@ -54,8 +56,8 @@ class Paddle {
         this.score = 0;
         this.move = DIRECTION.IDLE;
         this.speed = 10;
-        this.ready = false;
         this.username = username;
+        this.ready = false;
     }
 }
 
@@ -73,19 +75,18 @@ export class Game {
     round: number;
     color: string;
     leftOrRight: ISide;
+    isStarted: boolean;
 
-    constructor(leftUser, rightUser) {
+    constructor() {
     this.players = [];
-    this.players.push(new Paddle('left', leftUser));
-    this.players.push(new Paddle('right', rightUser));
     this.ball = new Ball(2);
     this.running = false;
     this.over = false;
-    this.turn = this.players[1];
     this.timer = this.round = 0;
     // this.color = '#2c3e50';
     this.color = '#000000';
     this.leftOrRight = {};
+    this.isStarted = false;
 }
 
     _resetTurn(victor, loser) : void {
@@ -103,16 +104,16 @@ export class Game {
 }
 
 
-function update(Pong: Game) {
-    if (!Pong.over) {
-      const player_left = Pong.players[0];
-      const player_right = Pong.players[1];
+function update(game: Game) {
+    if (!game.over) {
+      const player_left = game.players[0];
+      const player_right = game.players[1];
       // If the ball collides with the bound limits - correct the x and y coords.
-      if (Pong.ball.x <= 0) Pong._resetTurn.call(Pong, player_right, player_left);
-      if (Pong.ball.x >= 682)
-        Pong._resetTurn.call(Pong, player_left, player_right);
-      if (Pong.ball.y <= 0) Pong.ball.moveY = DIRECTION.DOWN;
-      if (Pong.ball.y >= 482) Pong.ball.moveY = DIRECTION.UP;
+      if (game.ball.x <= 0) game._resetTurn.call(game, player_right, player_left);
+      if (game.ball.x >= 682)
+        game._resetTurn.call(game, player_left, player_right);
+      if (game.ball.y <= 0) game.ball.moveY = DIRECTION.DOWN;
+      if (game.ball.y >= 482) game.ball.moveY = DIRECTION.UP;
 
       // Move player if they player.move value was updated by a keyboard event
       if (player_left.move === DIRECTION.UP) player_left.y -= player_left.speed;
@@ -126,11 +127,12 @@ function update(Pong: Game) {
 
       // On new serve (start of each turn) move the ball to the correct side
       // and randomize the direction to add some challenge.
-      if (Pong._turnDelayIsOver.call(Pong) && Pong.turn) {
-        Pong.ball.moveX = Pong.turn === player_left ? DIRECTION.LEFT : DIRECTION.RIGHT;
-        Pong.ball.moveY = [DIRECTION.UP, DIRECTION.DOWN][Math.round(Math.random())];
-        Pong.ball.y = Math.floor(Math.random() * 500 - 200) + 200;
-        Pong.turn = null;
+      if (game._turnDelayIsOver.call(game) && game.turn) {
+        console.log('in turnDelay')
+        game.ball.moveX = game.turn === player_left ? DIRECTION.LEFT : DIRECTION.RIGHT;
+        game.ball.moveY = [DIRECTION.UP, DIRECTION.DOWN][Math.round(Math.random())];
+        game.ball.y = Math.floor(Math.random() * 500 - 200) + 200;
+        game.turn = null;
       }
 
       // If the player collides with the bound limits, update the x and y coords.
@@ -143,36 +145,36 @@ function update(Pong: Game) {
         player_right.y = 500 - player_right.height;
 
       // Move ball in intended direction based on moveY and moveX values
-      if (Pong.ball.moveY === DIRECTION.UP) Pong.ball.y -= Pong.ball.speed / 1.5;
-      else if (Pong.ball.moveY === DIRECTION.DOWN) Pong.ball.y += Pong.ball.speed / 1.5;
-      if (Pong.ball.moveX === DIRECTION.LEFT) Pong.ball.x -= Pong.ball.speed;
-      else if (Pong.ball.moveX === DIRECTION.RIGHT) Pong.ball.x += Pong.ball.speed;
+      if (game.ball.moveY === DIRECTION.UP) game.ball.y -= game.ball.speed / 1.5;
+      else if (game.ball.moveY === DIRECTION.DOWN) game.ball.y += game.ball.speed / 1.5;
+      if (game.ball.moveX === DIRECTION.LEFT) game.ball.x -= game.ball.speed;
+      else if (game.ball.moveX === DIRECTION.RIGHT) game.ball.x += game.ball.speed;
 
       // Handle Player-Ball collisions
       if (
-        Pong.ball.x - Pong.ball.width <= player_left.x &&
-        Pong.ball.x >= player_left.x - player_left.width
+        game.ball.x - game.ball.width <= player_left.x &&
+        game.ball.x >= player_left.x - player_left.width
       ) {
         if (
-          Pong.ball.y <= player_left.y + player_left.height &&
-          Pong.ball.y + Pong.ball.height >= player_left.y
+          game.ball.y <= player_left.y + player_left.height &&
+          game.ball.y + game.ball.height >= player_left.y
         ) {
-          Pong.ball.x = player_left.x + Pong.ball.width;
-          Pong.ball.moveX = DIRECTION.RIGHT;
+          game.ball.x = player_left.x + game.ball.width;
+          game.ball.moveX = DIRECTION.RIGHT;
         }
       }
 
       // Handle paddle-ball collision
       if (
-        Pong.ball.x - Pong.ball.width <= player_right.x &&
-        Pong.ball.x >= player_right.x - player_right.width
+        game.ball.x - game.ball.width <= player_right.x &&
+        game.ball.x >= player_right.x - player_right.width
       ) {
         if (
-          Pong.ball.y <= player_right.y + player_right.height &&
-          Pong.ball.y + Pong.ball.height >= player_right.y
+          game.ball.y <= player_right.y + player_right.height &&
+          game.ball.y + game.ball.height >= player_right.y
         ) {
-          Pong.ball.x = player_right.x - Pong.ball.width;
-          Pong.ball.moveX = DIRECTION.LEFT;
+          game.ball.x = player_right.x - game.ball.width;
+          game.ball.moveX = DIRECTION.LEFT;
 
           // beep1.play();
         }

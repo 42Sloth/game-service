@@ -10,10 +10,22 @@ export class GameService {
     // constructor() {
     //     this.gameRepository = GameResult.getRepository();
     // }
+    waitingInterval(server: Server, room: string, game: Game) {
+        console.log(game);
+        try {
+            setInterval(() =>{
+                server.to(room).emit('drawGame', game);
+            }, 1000 / 50)
+            } catch (e) {
+                console.log(e);
+            }
+    }
+
     startInterval(server: Server, room: string, game: Game) {
         try {
         setInterval(() =>{
             gameLoop(game);
+            // console.log(game.ball);
             server.to(room).emit('drawGame', game);
         }, 1000 / 50)
         } catch (e) {

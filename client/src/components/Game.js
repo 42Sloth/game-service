@@ -22,8 +22,18 @@ const Game = () => {
       socket.emit('key-action', { username: username, type: 'up', keyCode: e.keyCode });
   };
 
+  const spaceup = e => {
+    console.log('key pressed', e.keyCode);
+
+    if (e.keyCode === 32) {
+      console.log('key pressed', e.keyCode);
+      socket.emit('ready', { username: username, type: 'up', keyCode: e.keyCode });
+    }
+  };
+
   const init = () => {
     console.log('init');
+    document.removeEventListener('keyup', spaceup);
     document.addEventListener('keydown', keydown);
     document.addEventListener('keyup', keyup);
   };
@@ -35,12 +45,30 @@ const Game = () => {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = 'black';
     context.fillRect(0, 0, canvas.width, canvas.height);
+    // draw ready
+    if (!gameState.isStarted) {
+      context.fillStyle = '#A0D4F7';
+      if (player_left && player_left.ready === true)
+        context.fillRect(0, 0, canvas.width / 2, canvas.height);
+      if (player_right && player_right.ready === true)
+        context.fillRect(canvas.width / 2, 0, canvas.width / 2, canvas.height);
+
+      context.fillStyle = 'white';
+      context.font = '20px Courier New';
+      context.fillText(
+        '시작하려면 space bar를 눌러주세요.',
+        canvas.width / 2 - 150,
+        canvas.height - 50
+      );
+    }
     context.fillStyle = 'white';
 
     // draw player1
-    context.fillRect(player_left.x, player_left.y, player_left.width, player_left.height);
+    if (player_left)
+      context.fillRect(player_left.x, player_left.y, player_left.width, player_left.height);
     // draw player2
-    context.fillRect(player_right.x, player_right.y, player_right.width, player_right.height);
+    if (player_right)
+      context.fillRect(player_right.x, player_right.y, player_right.width, player_right.height);
 
     // draw ball
     context.fillRect(
@@ -59,14 +87,14 @@ const Game = () => {
     context.strokeStyle = '#ffffff';
     context.stroke();
 
-    // draw the players score (left)
-    context.fillText(player_left.score.toString(), canvas.width / 2 - 300, 200);
-
-    // draw the paddles score (right)
-    context.fillText(player_right.score.toString(), canvas.width / 2 + 300, 200);
-
     // change the font size for the center score text
     context.font = '30px Courier New';
+
+    // draw the players score (left)
+    if (player_left) context.fillText(player_left.score.toString(), canvas.width / 2 - 300, 200);
+
+    // draw the paddles score (right)
+    if (player_right) context.fillText(player_right.score.toString(), canvas.width / 2 + 300, 200);
 
     // draw the winning score (center)
     context.fillText('Round ' + (gameState.round + 1), canvas.width / 2, 25);
@@ -90,7 +118,9 @@ const Game = () => {
     if (id === '0') {
       username = prompt('닉네임?');
       if (!username) window.location.reload();
-      socket.emit('ready', { username: username });
+
+      socket.emit('enter', { username: username });
+      document.addEventListener('keyup', spaceup);
       socket.on('init', init);
     } else {
       socket.emit('join', { roomId: id });

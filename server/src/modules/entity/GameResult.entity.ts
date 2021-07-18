@@ -1,18 +1,18 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import { Game } from "../game/game";
+import { Game, Paddle } from "../game/game";
 
 @Entity()
 export class GameResult extends BaseEntity{
 	constructor(game: Game){
 		super();
-		if (!game)
-			game = new Game('taehkim', 'juhlee');
-		this.playerLeft = game.players[0].username;
-		this.playerRight = game.players[1].username;
-		this.winner = game.players[0].username;
-		this.timer = 1;
-		this.playerLeftScore = game.players[0].score;
-		this.playerRightScore = game.players[1].score;
+		if (game) {
+			this.playerLeft = game.players[0].username;
+			this.playerRight = game.players[1].username;
+			this.winner = game.players[0].username;
+			this.timer = 1;
+			this.playerLeftScore = game.players[0].score;
+			this.playerRightScore = game.players[1].score;
+		}
 	}
 
 	@PrimaryGeneratedColumn("increment")

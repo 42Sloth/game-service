@@ -9,9 +9,9 @@ import {
   import { Socket, Server } from 'socket.io';
   import * as dotenv from 'dotenv'
   import * as path from 'path';
-import { Game } from './game';
-import { User } from '../entity/User.entity';
+import { Game, Paddle } from './game';
 import { v4 as uuid } from 'uuid';
+import { UnsupportedMediaTypeException } from '@nestjs/common';
 
 
   export interface IroomToGame {
@@ -22,9 +22,14 @@ import { v4 as uuid } from 'uuid';
     [username: string]: string;
   }
 
+  interface IunameToPaddle {
+    [username: string]: Paddle;
+  }
+
   export const userToRoom: IuserToRoom = {};
   export const roomToGame: IroomToGame = {};
-  export const matchQueue: User[] = [];
+  export const unameToPaddle: IunameToPaddle = {};
+  export const matchQueue: Paddle[] = [];
 
   dotenv.config({ path: path.join(__dirname, '../../../.env') });
   @WebSocketGateway(+process.env.PORT, { namespace: 'game' })
@@ -36,31 +41,76 @@ import { v4 as uuid } from 'uuid';
     @WebSocketServer()
     server: Server;
 
-    @SubscribeMessage('ready')
-    playerReadyProc(@ConnectedSocket() client: Socket, @MessageBody() body) {
-        console.log('ready in ')
+    @SubscribeMessage('enter')
+    playerEnter(@ConnectedSocket() client: Socket, @MessageBody() body) {
+        console.log('enter in ')
         const username = body.username;
+        // 사용자가 자기가 진행하고 있던 게임 방에 접속했을 때
         if (userToRoom[username]) {
           const roomId = userToRoom[username];
           client.join(roomId);
           this.server.to(roomId).emit('init');
           return ;
         }
-        matchQueue.push(new User(username, client));
-        if (matchQueue.length === 2) {
-          const user1 = matchQueue.shift();
-          const user2 = matchQueue.shift();
+
+        // 새로운 방 생성
+        if (matchQueue.length == 0) {
           const roomId = uuid();
-          userToRoom[user1.username] = roomId;
-          userToRoom[user2.username] = roomId;
-          const game = new Game(user1.username, user2.username);
-          game.leftOrRight[user1.username] = 0;
-          game.leftOrRight[user2.username] = 1;
+          const game = new Game();
+          const paddle: Paddle = new Paddle('left', username);
+          game.players.push(paddle);
+          unameToPaddle[username] = paddle;
+          matchQueue.push(paddle);
+          // game.players.push(new Paddle('right', 'nothing'));
           roomToGame[roomId] = game;
-          user1.client.join(roomId);
-          user2.client.join(roomId);
-          this.gameService.startInterval(this.server, roomId, game)
-          this.server.to(roomId).emit('init');
+          userToRoom[username] = roomId;
+          game.leftOrRight[username] = 0;
+          client.join(roomId);
+          this.gameService.waitingInterval(this.server, roomId, game);
+        }
+        // 게스트 들어왔을 때
+        else if (matchQueue.length == 1) {
+          const roomOwner = matchQueue.shift();
+          const roomId = userToRoom[roomOwner.username];
+          const game = roomToGame[roomId];
+          const roomGuest: Paddle = new Paddle('right', username);
+          game.turn = roomGuest;
+          game.players.push(roomGuest);
+          // const roomGuest = matchQueue.shift();
+          userToRoom[roomGuest.username] = roomId;
+          game.players[1].username = roomGuest.username;
+          game.leftOrRight[roomGuest.username] = 1;
+          client.join(roomId);
+          this.gameService.waitingInterval(this.server, roomId, game);
+        }
+    }
+
+    @SubscribeMessage('ready')
+    playerReady(@ConnectedSocket() client: Socket, @MessageBody() body) {
+        console.log('ready in ')
+        const username = body.username;
+        const roomId = userToRoom[username];
+        const game: Game = roomToGame[roomId];
+
+        // ready 해주는 부분
+        if (game.players.length === 1) {
+          if (game.players[0].username === username)
+            game.players[0].ready = !game.players[0].ready;
+        } else if (game.players.length === 2) {
+          if (game.players[0].username === username)
+            game.players[0].ready = !game.players[0].ready;
+          else if (game.players[1].username === username)
+            game.players[1].ready = !game.players[1].ready;
+        }
+
+        // 두명 다 ready 이면 시작 해주는 부분
+        if (game.players.length === 2) {
+          if (game.players[0].ready === true && game.players[1].ready === true)
+          {
+            this.server.to(roomId).emit('init');
+            game.isStarted = true;
+            this.gameService.startInterval(this.server, roomId, game);
+          }
         }
     }
 

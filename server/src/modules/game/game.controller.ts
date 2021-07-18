@@ -13,8 +13,11 @@ export class GameController {
 	getAllList(): GameListResponseDto[]{
 		const list: GameListResponseDto[] = [];
 		for(let key of Object.keys(roomToGame)) {
-			const ele: GameListResponseDto = new GameListResponseDto(key, roomToGame[key].players[0].username, roomToGame[key].players[1].username);
-			list.push(ele);
+			const game = roomToGame[key];
+			if (game.players.length === 2) {
+				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, game.players[1].username);
+				list.push(ele);
+			}
 		}
 		return list;
 	}
