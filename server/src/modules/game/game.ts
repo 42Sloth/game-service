@@ -118,7 +118,7 @@ export class Game {
       this.color = '#000000';
       this.leftOrRight = {};
       this.isStarted = false;
-      this.endScore = 1;
+      this.endScore = 5;
       this.startAt = new Date();
       this.endAt = new Date();
       this.access = true;
@@ -129,8 +129,12 @@ export class Game {
       this.password = password;
     }
 
-    _resetTurn(victor, loser, ballSpeed) : void {
-      this.ball = new Ball(ballSpeed);
+    _resetTurn(victor, loser) : void {
+      const ballNewSpeed: number = (this.ball.defaultSpeed * 2 - this.ball.defaultSpeed) / (this.endScore * 2 - 1) * this.ball.speed + this.ball.defaultSpeed;
+      const radius = this.ball.radius;
+      this.ball = new Ball(ballNewSpeed);
+      this.ball.radius = radius;
+      console.log(this.ball);
       this.turn = loser;
       this.timer = new Date().getTime();
       victor.score++;
@@ -150,12 +154,11 @@ function update(game: Game) {
       const player_left = game.players[0];
       const player_right = game.players[1];
       // If the ball collides with the bound limits - correct the x and y coords.
-      const ballNewSpeed: number = (game.ball.defaultSpeed * 2 - game.ball.defaultSpeed) / (game.endScore * 2 - 1) * game.ball.speed + game.ball.defaultSpeed;
-      if (game.ball.x <= 0) game._resetTurn.call(game, player_right, player_left, ballNewSpeed);
-      if (game.ball.x >= WIDTH)
-        game._resetTurn.call(game, player_left, player_right, ballNewSpeed);
-      if (game.ball.y <= 0) game.ball.moveY = DIRECTION.DOWN;
-      if (game.ball.y >= HEIGHT) game.ball.moveY = DIRECTION.UP;
+      if (game.ball.x - game.ball.radius <= 0) game._resetTurn.call(game, player_right, player_left);
+      if (game.ball.x + game.ball.radius >= WIDTH)
+        game._resetTurn.call(game, player_left, player_right);
+      if (game.ball.y - game.ball.radius <= 0) game.ball.moveY = DIRECTION.DOWN;
+      if (game.ball.y + game.ball.radius >= HEIGHT) game.ball.moveY = DIRECTION.UP;
 
       // Move player if they player.move value was updated by a keyboard event
       if (player_left.move === DIRECTION.UP) player_left.y -= player_left.speed;
@@ -193,7 +196,8 @@ function update(game: Game) {
 
       // Handle Player-Ball collisions
       if (
-        game.ball.x - game.ball.radius <= player_left.x + player_left.width
+        game.ball.x - game.ball.radius <= player_left.x + player_left.width &&
+        game.ball.x - game.ball.radius >= player_left.x
       ) {
         if (
           game.ball.y - game.ball.radius <= player_left.y + player_left.height &&
@@ -205,7 +209,8 @@ function update(game: Game) {
 
       // Handle paddle-ball collision
       if (
-        game.ball.x + game.ball.radius >= player_right.x
+        game.ball.x + game.ball.radius >= player_right.x &&
+        game.ball.x + game.ball.radius <= player_right.x + player_right.width
       ) {
         if (
           game.ball.y - game.ball.radius <= player_right.y + player_right.height &&
@@ -248,3 +253,6 @@ function update(game: Game) {
       }
     }
 }
+
+
+

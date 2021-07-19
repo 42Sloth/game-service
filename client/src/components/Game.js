@@ -78,6 +78,7 @@ const Game = () => {
     // draw ball
     context.fillStyle = '#ffffff';
     context.beginPath();
+    console.log(gameState.ball.radius);
     context.arc(gameState.ball.x, gameState.ball.y, 2 * gameState.ball.radius, 0, 2 * Math.PI);
     context.fill();
 
