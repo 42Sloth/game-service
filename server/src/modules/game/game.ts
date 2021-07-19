@@ -10,32 +10,62 @@ export var DIRECTION = {
     RIGHT: 4
   };
 
-var rounds = [10];
-//var rounds = [2, 5, 3, 3, 2];
-var colors = ['#1abc9c', '#2ecc71', '#3498db', '#e74c3c', '#9b59b6'];
+enum SpeedEnum {
+  Slow = "slow",
+  Moderate = "moderate",
+  Fast = "fast"
+};
+
+enum SizeEnum {
+  XL = "xl",
+  L = "l",
+  M = 'm',
+  S = 's'
+};
 
 // The ball object (The cube that bounces back and forth)
 class Ball{
-    width: number;
-    height: number;
     x: number;
     y: number;
     moveX: number;
     moveY: number;
     speed: number;
-    constructor(incrementedSpeed) {
-        this.width =18;
-        this.height = 18;
-        this.x = 341;
-        this.y = 241;
+    defaultSpeed: number;
+    radius: number;
+
+    constructor(speed) {
+        this.x = 360;
+        this.y = 240;
         this.moveX = DIRECTION.IDLE;
         this.moveY= DIRECTION.IDLE;
-        this.speed = incrementedSpeed || 12;
+        this.speed = speed;
+        this.defaultSpeed = 5;
+        this.radius = 7;
+    }
+
+    setSpeedByType(type: SpeedEnum) {
+        if (type === 'slow')
+            this.speed = 3;
+        else if (type === 'moderate')
+            this.speed = 4;
+        else if (type === 'fast')
+            this.speed = 5;
+    }
+
+    setSizeByType(type: SizeEnum) {
+      if (type === 'xl')
+        this.radius = 6;
+      else if (type === 'l')
+        this.radius = 5;
+      else if (type === 'm')
+        this.radius = 4;
+      else if (type === 's')
+        this.radius = 3;
     }
 }
 
 // The paddle object (The two lines that move up and down)
-class Paddle {
+export class Paddle {
     width: number;
     height: number;
     x: number;
@@ -43,19 +73,19 @@ class Paddle {
     score: number;
     move: number;
     speed: number;
-    ready: boolean;
     username: string;
+    ready: boolean;
 
     constructor(side, username){
-        this.width =18;
+        this.width =15;
         this.height = 70;
-        this.x = side === 'left' ? 150 : 550;
-        this.y = 215;
+        this.x = side === 'left' ? 120 : 600;
+        this.y = 240;
         this.score = 0;
         this.move = DIRECTION.IDLE;
         this.speed = 10;
-        this.ready = false;
         this.username = username;
+        this.ready = false;
     }
 }
 
@@ -70,49 +100,65 @@ export class Game {
     over: boolean;
     turn: Paddle;
     timer: number;
-    round: number;
     color: string;
     leftOrRight: ISide;
+    isStarted: boolean;
+    endScore: number;
+    startAt: Date;
+    endAt: Date;
+    access: boolean;
+    password: string;
 
-    constructor(leftUser, rightUser) {
-    this.players = [];
-    this.players.push(new Paddle('left', leftUser));
-    this.players.push(new Paddle('right', rightUser));
-    this.ball = new Ball(2);
-    this.running = false;
-    this.over = false;
-    this.turn = this.players[1];
-    this.timer = this.round = 0;
-    // this.color = '#2c3e50';
-    this.color = '#000000';
-    this.leftOrRight = {};
-}
+    constructor() {
+      this.players = [];
+      this.ball = new Ball(5);
+      this.running = false;
+      this.over = false;
+      this.timer = 0;
+      this.color = '#000000';
+      this.leftOrRight = {};
+      this.isStarted = false;
+      this.endScore = 5;
+      this.startAt = new Date();
+      this.endAt = new Date();
+      this.access = true;
+    }
+
+    setPrivate(password: string) {
+      this.access = false;
+      this.password = password;
+    }
 
     _resetTurn(victor, loser) : void {
-    this.ball = new Ball(this.ball.speed);
-    this.turn = loser;
-    this.timer = new Date().getTime();
-    victor.score++;
-    // beep2.play();
+      const ballNewSpeed: number = (this.ball.defaultSpeed * 2 - this.ball.defaultSpeed) / (this.endScore * 2 - 1) * this.ball.speed + this.ball.defaultSpeed;
+      const radius = this.ball.radius;
+      this.ball = new Ball(ballNewSpeed);
+      this.ball.radius = radius;
+      console.log(this.ball);
+      this.turn = loser;
+      this.timer = new Date().getTime();
+      victor.score++;
     }
 
-  // Wait for a delay to have passed after each turn.
-    _turnDelayIsOver() {
-    return new Date().getTime() - this.timer >= 1000;
+    // Wait for a delay to have passed after each turn.
+    _turnDelayIsOver() : boolean {
+      return (new Date().getTime() - this.timer) >= 1000;
     }
 }
 
 
-function update(Pong: Game) {
-    if (!Pong.over) {
-      const player_left = Pong.players[0];
-      const player_right = Pong.players[1];
+function update(game: Game) {
+  const WIDTH = 720;
+  const HEIGHT = 480;
+    if (!game.over) {
+      const player_left = game.players[0];
+      const player_right = game.players[1];
       // If the ball collides with the bound limits - correct the x and y coords.
-      if (Pong.ball.x <= 0) Pong._resetTurn.call(Pong, player_right, player_left);
-      if (Pong.ball.x >= 682)
-        Pong._resetTurn.call(Pong, player_left, player_right);
-      if (Pong.ball.y <= 0) Pong.ball.moveY = DIRECTION.DOWN;
-      if (Pong.ball.y >= 482) Pong.ball.moveY = DIRECTION.UP;
+      if (game.ball.x - game.ball.radius <= 0) game._resetTurn.call(game, player_right, player_left);
+      if (game.ball.x + game.ball.radius >= WIDTH)
+        game._resetTurn.call(game, player_left, player_right);
+      if (game.ball.y - game.ball.radius <= 0) game.ball.moveY = DIRECTION.DOWN;
+      if (game.ball.y + game.ball.radius >= HEIGHT) game.ball.moveY = DIRECTION.UP;
 
       // Move player if they player.move value was updated by a keyboard event
       if (player_left.move === DIRECTION.UP) player_left.y -= player_left.speed;
@@ -126,56 +172,87 @@ function update(Pong: Game) {
 
       // On new serve (start of each turn) move the ball to the correct side
       // and randomize the direction to add some challenge.
-      if (Pong._turnDelayIsOver.call(Pong) && Pong.turn) {
-        Pong.ball.moveX = Pong.turn === player_left ? DIRECTION.LEFT : DIRECTION.RIGHT;
-        Pong.ball.moveY = [DIRECTION.UP, DIRECTION.DOWN][Math.round(Math.random())];
-        Pong.ball.y = Math.floor(Math.random() * 500 - 200) + 200;
-        Pong.turn = null;
+      if (game._turnDelayIsOver.call(game) && game.turn) {
+        game.ball.moveX = game.turn === player_left ? DIRECTION.LEFT : DIRECTION.RIGHT;
+        game.ball.moveY = [DIRECTION.UP, DIRECTION.DOWN][Math.round(Math.random())];
+        game.ball.y = Math.floor(Math.random() * 500 - 200) + 200;
+        game.turn = null;
       }
 
       // If the player collides with the bound limits, update the x and y coords.
       if (player_left.y <= 0) player_left.y = 0;
-      else if (player_left.y >= 500 - player_left.height)
-        player_left.y = 500 - player_left.height;
+      else if (player_left.y >= HEIGHT - player_left.height)
+        player_left.y = HEIGHT - player_left.height;
 
       if (player_right.y <= 0) player_right.y = 0;
-      else if (player_right.y >= 500 - player_right.height)
-        player_right.y = 500 - player_right.height;
+      else if (player_right.y >= HEIGHT - player_right.height)
+        player_right.y = HEIGHT - player_right.height;
 
       // Move ball in intended direction based on moveY and moveX values
-      if (Pong.ball.moveY === DIRECTION.UP) Pong.ball.y -= Pong.ball.speed / 1.5;
-      else if (Pong.ball.moveY === DIRECTION.DOWN) Pong.ball.y += Pong.ball.speed / 1.5;
-      if (Pong.ball.moveX === DIRECTION.LEFT) Pong.ball.x -= Pong.ball.speed;
-      else if (Pong.ball.moveX === DIRECTION.RIGHT) Pong.ball.x += Pong.ball.speed;
+      if (game.ball.moveY === DIRECTION.UP) game.ball.y -= game.ball.speed / 1.5;
+      else if (game.ball.moveY === DIRECTION.DOWN) game.ball.y += game.ball.speed / 1.5;
+      if (game.ball.moveX === DIRECTION.LEFT) game.ball.x -= game.ball.speed;
+      else if (game.ball.moveX === DIRECTION.RIGHT) game.ball.x += game.ball.speed;
 
       // Handle Player-Ball collisions
       if (
-        Pong.ball.x - Pong.ball.width <= player_left.x &&
-        Pong.ball.x >= player_left.x - player_left.width
+        game.ball.x - game.ball.radius <= player_left.x + player_left.width &&
+        game.ball.x - game.ball.radius >= player_left.x
       ) {
         if (
-          Pong.ball.y <= player_left.y + player_left.height &&
-          Pong.ball.y + Pong.ball.height >= player_left.y
+          game.ball.y - game.ball.radius <= player_left.y + player_left.height &&
+          game.ball.y + game.ball.radius >= player_left.y
         ) {
-          Pong.ball.x = player_left.x + Pong.ball.width;
-          Pong.ball.moveX = DIRECTION.RIGHT;
+          game.ball.moveX = DIRECTION.RIGHT;
         }
       }
 
       // Handle paddle-ball collision
       if (
-        Pong.ball.x - Pong.ball.width <= player_right.x &&
-        Pong.ball.x >= player_right.x - player_right.width
+        game.ball.x + game.ball.radius >= player_right.x &&
+        game.ball.x + game.ball.radius <= player_right.x + player_right.width
       ) {
         if (
-          Pong.ball.y <= player_right.y + player_right.height &&
-          Pong.ball.y + Pong.ball.height >= player_right.y
+          game.ball.y - game.ball.radius <= player_right.y + player_right.height &&
+          game.ball.y + game.ball.radius >= player_right.y
         ) {
-          Pong.ball.x = player_right.x - Pong.ball.width;
-          Pong.ball.moveX = DIRECTION.LEFT;
-
-          // beep1.play();
+          game.ball.moveX = DIRECTION.LEFT;
         }
+      }
+      // if (
+      //   game.ball.x - game.ball.radius <= player_left.x &&
+      //   game.ball.x >= player_left.x - player_left.width
+      // ) {
+      //   if (
+      //     game.ball.y <= player_left.y + player_left.height &&
+      //     game.ball.y + game.ball.radius >= player_left.y
+      //   ) {
+      //     game.ball.x = player_left.x + game.ball.radius;
+      //     game.ball.moveX = DIRECTION.RIGHT;
+      //   }
+      // }
+
+      // Handle paddle-ball collision
+      // if (
+      //   game.ball.x - game.ball.radius <= player_right.x &&
+      //   game.ball.x >= player_right.x - player_right.width
+      // ) {
+      //   if (
+      //     game.ball.y <= player_right.y + player_right.height &&
+      //     game.ball.y + game.ball.radius >= player_right.y
+      //   ) {
+      //     game.ball.x = player_right.x - game.ball.radius;
+      //     game.ball.moveX = DIRECTION.LEFT;
+      //   }
+      // }
+
+
+      if (player_left.score === game.endScore || player_right.score === game.endScore) {
+        game.over = true;
+        game.endAt = new Date();
       }
     }
 }
+
+
+
