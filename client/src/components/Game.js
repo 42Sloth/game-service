@@ -39,7 +39,6 @@ const Game = () => {
   };
 
   const draw = gameState => {
-    console.log(gameState);
     const player_left = gameState.players[0];
     const player_right = gameState.players[1];
 
@@ -77,7 +76,6 @@ const Game = () => {
     context.stroke();
 
     // draw ball
-    // TODO: 공이 작아지니까 패들에 안 맞았는데 튕기는 현상 발생.
     context.fillStyle = '#ffffff';
     context.beginPath();
     context.arc(gameState.ball.x, gameState.ball.y, 2 * gameState.ball.radius, 0, 2 * Math.PI);

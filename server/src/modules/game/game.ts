@@ -179,7 +179,7 @@ function update(game: Game) {
       // If the player collides with the bound limits, update the x and y coords.
       if (player_left.y <= 0) player_left.y = 0;
       else if (player_left.y >= HEIGHT - player_left.height)
-        player_left.y = 500 - player_left.height;
+        player_left.y = HEIGHT - player_left.height;
 
       if (player_right.y <= 0) player_right.y = 0;
       else if (player_right.y >= HEIGHT - player_right.height)
@@ -193,31 +193,54 @@ function update(game: Game) {
 
       // Handle Player-Ball collisions
       if (
-        game.ball.x - game.ball.radius <= player_left.x &&
-        game.ball.x >= player_left.x - player_left.width
+        game.ball.x - game.ball.radius <= player_left.x + player_left.width
       ) {
         if (
-          game.ball.y <= player_left.y + player_left.height &&
+          game.ball.y - game.ball.radius <= player_left.y + player_left.height &&
           game.ball.y + game.ball.radius >= player_left.y
         ) {
-          game.ball.x = player_left.x + game.ball.radius;
           game.ball.moveX = DIRECTION.RIGHT;
         }
       }
 
       // Handle paddle-ball collision
       if (
-        game.ball.x - game.ball.radius <= player_right.x &&
-        game.ball.x >= player_right.x - player_right.width
+        game.ball.x + game.ball.radius >= player_right.x
       ) {
         if (
-          game.ball.y <= player_right.y + player_right.height &&
+          game.ball.y - game.ball.radius <= player_right.y + player_right.height &&
           game.ball.y + game.ball.radius >= player_right.y
         ) {
-          game.ball.x = player_right.x - game.ball.radius;
           game.ball.moveX = DIRECTION.LEFT;
         }
       }
+      // if (
+      //   game.ball.x - game.ball.radius <= player_left.x &&
+      //   game.ball.x >= player_left.x - player_left.width
+      // ) {
+      //   if (
+      //     game.ball.y <= player_left.y + player_left.height &&
+      //     game.ball.y + game.ball.radius >= player_left.y
+      //   ) {
+      //     game.ball.x = player_left.x + game.ball.radius;
+      //     game.ball.moveX = DIRECTION.RIGHT;
+      //   }
+      // }
+
+      // Handle paddle-ball collision
+      // if (
+      //   game.ball.x - game.ball.radius <= player_right.x &&
+      //   game.ball.x >= player_right.x - player_right.width
+      // ) {
+      //   if (
+      //     game.ball.y <= player_right.y + player_right.height &&
+      //     game.ball.y + game.ball.radius >= player_right.y
+      //   ) {
+      //     game.ball.x = player_right.x - game.ball.radius;
+      //     game.ball.moveX = DIRECTION.LEFT;
+      //   }
+      // }
+
 
       if (player_left.score === game.endScore || player_right.score === game.endScore) {
         game.over = true;
