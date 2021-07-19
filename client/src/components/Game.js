@@ -54,12 +54,11 @@ const Game = () => {
       if (player_right && player_right.ready === true)
         context.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
 
-      context.fillStyle = 'white';
+      context.fillStyle = '#aaa69d';
       context.font = '20px Courier New';
-      // 🚨
       context.fillText('시작하려면 space bar를 눌러주세요.', WIDTH / 2 - 150, HEIGHT - 50);
     }
-    context.fillStyle = 'white';
+    context.fillStyle = '#aaa69d';
 
     // draw player1
     if (player_left)
@@ -68,27 +67,21 @@ const Game = () => {
     if (player_right)
       context.fillRect(player_right.x, player_right.y, player_right.width, player_right.height);
 
-    // draw ball
-    // context.fillRect(
-    //   gameState.ball.x,
-    //   gameState.ball.y,
-    //   gameState.ball.width,
-    //   gameState.ball.height
-    // );
-    // TODO: 공이 작아지니까 패들에 안 맞았는데 튕기는 현상 발생.
-    context.beginPath();
-    // context.arc(gameState.ball.x, gameState.ball.y, gameState.ball.radius, 0, 2 * Math.PI);
-    context.arc(gameState.ball.x, gameState.ball.y, 5, 0, 2 * Math.PI);
-    context.fill();
-
     // draw net
     context.beginPath();
     context.setLineDash([7, 15]);
     context.moveTo(WIDTH / 2, HEIGHT - 140);
     context.lineTo(WIDTH / 2, 140);
-    context.lineWidth = 10;
-    context.strokeStyle = '#ffffff';
+    context.lineWidth = 8;
+    context.strokeStyle = '#aaa69d';
     context.stroke();
+
+    // draw ball
+    // TODO: 공이 작아지니까 패들에 안 맞았는데 튕기는 현상 발생.
+    context.fillStyle = '#ffffff';
+    context.beginPath();
+    context.arc(gameState.ball.x, gameState.ball.y, 2 * gameState.ball.radius, 0, 2 * Math.PI);
+    context.fill();
 
     // change the font size for the center score text
     context.font = '30px Courier New';

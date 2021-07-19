@@ -6,7 +6,7 @@ const ip = process.env.REACT_APP_GAME_SERVER_IP;
 const port = process.env.REACT_APP_GAME_SERVER_PORT;
 const res_url = `http://${ip}:${port}`;
 
-const colors = { 0: '#ff0000', 1: '#ffff00', 2: '#00ff00', 3: '#0000ff' };
+const colors = { 0: '#b71540', 1: '#ffda79', 2: '#0a3d62', 3: '#78e08f' };
 
 const Home = () => {
   const [gameList, setGameList] = useState([]);

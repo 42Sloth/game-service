@@ -9,7 +9,7 @@ const Modal = props => {
     access: 'public',
     password: '',
     speed: 'moderate',
-    ball: 0,
+    ball: 'xl',
     mapColor: 0
   });
 
@@ -83,37 +83,36 @@ const Modal = props => {
             <h3>Ball</h3>
             <input
               type='radio'
-              value={0}
+              value='xl'
               name='ball'
-              checked={userInputs['ball'] == 0}
+              checked={userInputs['ball'] === 'xl'}
               onChange={handleChange}
             />
-            🏀
+            XL
             <input
               type='radio'
-              value={1}
+              value='l'
               name='ball'
-              checked={userInputs['ball'] == 1}
+              checked={userInputs['ball'] === 'l'}
               onChange={handleChange}
             />
-            ⚽️
+            L
             <input
               type='radio'
-              value={2}
+              value='m'
               name='ball'
-              checked={userInputs['ball'] == 2}
+              checked={userInputs['ball'] === 'm'}
               onChange={handleChange}
             />
-            🎾
+            M
             <input
               type='radio'
-              value={3}
+              value='s'
               name='ball'
-              checked={userInputs['ball'] == 3}
+              checked={userInputs['ball'] === 's'}
               onChange={handleChange}
             />
-            🏓
-            <h3>Map color</h3>
+            S<h3>Map color</h3>
             <input
               type='radio'
               value={0}

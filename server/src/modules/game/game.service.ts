@@ -69,6 +69,7 @@ export class GameService {
         const roomId = this.createDefaultRoom(data.username);
         const game: Game = roomToGame[roomId];
         game.ball.setSpeedByType(data.speed);
+        game.ball.setSizeByType(data.ball);
         game.color = data.mapColor;
         // TODO:  roomName, ball 처리 해야함
         if (data.access === 'private')

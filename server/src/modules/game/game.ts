@@ -16,26 +16,31 @@ enum SpeedEnum {
   Fast = "fast"
 };
 
+enum SizeEnum {
+  XL = "xl",
+  L = "l",
+  M = 'm',
+  S = 's'
+};
+
 // The ball object (The cube that bounces back and forth)
 class Ball{
-    width: number;
-    height: number;
     x: number;
     y: number;
     moveX: number;
     moveY: number;
     speed: number;
     defaultSpeed: number;
+    radius: number;
 
     constructor(speed) {
-        this.width =18;
-        this.height = 18;
-        this.x = 341;
-        this.y = 241;
+        this.x = 360;
+        this.y = 240;
         this.moveX = DIRECTION.IDLE;
         this.moveY= DIRECTION.IDLE;
         this.speed = speed;
         this.defaultSpeed = 5;
+        this.radius = 7;
     }
 
     setSpeedByType(type: SpeedEnum) {
@@ -45,6 +50,17 @@ class Ball{
             this.speed = 4;
         else if (type === 'fast')
             this.speed = 5;
+    }
+
+    setSizeByType(type: SizeEnum) {
+      if (type === 'xl')
+        this.radius = 6;
+      else if (type === 'l')
+        this.radius = 5;
+      else if (type === 'm')
+        this.radius = 4;
+      else if (type === 's')
+        this.radius = 3;
     }
 }
 
@@ -61,10 +77,10 @@ export class Paddle {
     ready: boolean;
 
     constructor(side, username){
-        this.width =18;
+        this.width =15;
         this.height = 70;
-        this.x = side === 'left' ? 150 : 550;
-        this.y = 215;
+        this.x = side === 'left' ? 120 : 600;
+        this.y = 240;
         this.score = 0;
         this.move = DIRECTION.IDLE;
         this.speed = 10;
@@ -128,16 +144,18 @@ export class Game {
 
 
 function update(game: Game) {
+  const WIDTH = 720;
+  const HEIGHT = 480;
     if (!game.over) {
       const player_left = game.players[0];
       const player_right = game.players[1];
       // If the ball collides with the bound limits - correct the x and y coords.
       const ballNewSpeed: number = (game.ball.defaultSpeed * 2 - game.ball.defaultSpeed) / (game.endScore * 2 - 1) * game.ball.speed + game.ball.defaultSpeed;
       if (game.ball.x <= 0) game._resetTurn.call(game, player_right, player_left, ballNewSpeed);
-      if (game.ball.x >= 682)
+      if (game.ball.x >= WIDTH)
         game._resetTurn.call(game, player_left, player_right, ballNewSpeed);
       if (game.ball.y <= 0) game.ball.moveY = DIRECTION.DOWN;
-      if (game.ball.y >= 482) game.ball.moveY = DIRECTION.UP;
+      if (game.ball.y >= HEIGHT) game.ball.moveY = DIRECTION.UP;
 
       // Move player if they player.move value was updated by a keyboard event
       if (player_left.move === DIRECTION.UP) player_left.y -= player_left.speed;
@@ -160,12 +178,12 @@ function update(game: Game) {
 
       // If the player collides with the bound limits, update the x and y coords.
       if (player_left.y <= 0) player_left.y = 0;
-      else if (player_left.y >= 500 - player_left.height)
+      else if (player_left.y >= HEIGHT - player_left.height)
         player_left.y = 500 - player_left.height;
 
       if (player_right.y <= 0) player_right.y = 0;
-      else if (player_right.y >= 500 - player_right.height)
-        player_right.y = 500 - player_right.height;
+      else if (player_right.y >= HEIGHT - player_right.height)
+        player_right.y = HEIGHT - player_right.height;
 
       // Move ball in intended direction based on moveY and moveX values
       if (game.ball.moveY === DIRECTION.UP) game.ball.y -= game.ball.speed / 1.5;
@@ -175,28 +193,28 @@ function update(game: Game) {
 
       // Handle Player-Ball collisions
       if (
-        game.ball.x - game.ball.width <= player_left.x &&
+        game.ball.x - game.ball.radius <= player_left.x &&
         game.ball.x >= player_left.x - player_left.width
       ) {
         if (
           game.ball.y <= player_left.y + player_left.height &&
-          game.ball.y + game.ball.height >= player_left.y
+          game.ball.y + game.ball.radius >= player_left.y
         ) {
-          game.ball.x = player_left.x + game.ball.width;
+          game.ball.x = player_left.x + game.ball.radius;
           game.ball.moveX = DIRECTION.RIGHT;
         }
       }
 
       // Handle paddle-ball collision
       if (
-        game.ball.x - game.ball.width <= player_right.x &&
+        game.ball.x - game.ball.radius <= player_right.x &&
         game.ball.x >= player_right.x - player_right.width
       ) {
         if (
           game.ball.y <= player_right.y + player_right.height &&
-          game.ball.y + game.ball.height >= player_right.y
+          game.ball.y + game.ball.radius >= player_right.y
         ) {
-          game.ball.x = player_right.x - game.ball.width;
+          game.ball.x = player_right.x - game.ball.radius;
           game.ball.moveX = DIRECTION.LEFT;
         }
       }
