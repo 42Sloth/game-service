@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { getParameterByName } from '../utils/utils';
 
@@ -15,24 +15,29 @@ const Game = () => {
   let canvas = null;
   let context = null;
 
+  const [ready, setReady] = useState(false);
+
   const keydown = e => {
-    if (e.keyCode === 38 || e.keyCode === 40)
+    if (e.keyCode === 38 || e.keyCode === 40) {
       socket.emit('key-action', { username: username, type: 'down', keyCode: e.keyCode });
+    }
   };
 
   const keyup = e => {
-    if (e.keyCode === 38 || e.keyCode === 40)
+    if (e.keyCode === 38 || e.keyCode === 40) {
       socket.emit('key-action', { username: username, type: 'up', keyCode: e.keyCode });
+    }
   };
 
   const spaceup = e => {
     if (e.keyCode === 32) {
       socket.emit('ready', { username: username, type: 'up', keyCode: e.keyCode });
+      setReady(ready => !ready);
     }
   };
 
   const permitToCtrl = () => {
-    console.log('permitToCtrl');
+    // console.log('permitToCtrl');
     document.removeEventListener('keyup', spaceup);
     document.addEventListener('keydown', keydown);
     document.addEventListener('keyup', keyup);
@@ -78,7 +83,6 @@ const Game = () => {
     // draw ball
     context.fillStyle = '#ffffff';
     context.beginPath();
-    console.log(gameState.ball.radius);
     context.arc(gameState.ball.x, gameState.ball.y, 2 * gameState.ball.radius, 0, 2 * Math.PI);
     context.fill();
 
@@ -109,6 +113,15 @@ const Game = () => {
     document.removeEventListener('keydown', keydown);
     const msg = `winner: ${gameState.winner}\n 메인 화면으로 돌아가시겠습니까?`;
     if (window.confirm(msg)) window.location.href = '/';
+    setReady(ready => !ready);
+  };
+
+  const exitClick = () => {
+    if (window.confirm('게임에서 나가시겠습니까?')) {
+      socket.emit('exitGame', { username: username });
+      document.removeEventListener('spaceup', spaceup);
+      window.location.href = '/';
+    }
   };
 
   useEffect(() => {
@@ -130,7 +143,6 @@ const Game = () => {
     // 방 만들기
     else if (type === '1') {
       username = getParameterByName('username');
-      console.log(id, username);
       // TODO: 존재하는 room인지 확인하는 로직 추가
       socket.emit('selectEnter', { roomId: id, username: username });
       document.addEventListener('keyup', spaceup);
@@ -162,6 +174,9 @@ const Game = () => {
   return (
     <div>
       <canvas></canvas>
+      <button onClick={exitClick} disabled={ready}>
+        나가기
+      </button>
     </div>
   );
 };
