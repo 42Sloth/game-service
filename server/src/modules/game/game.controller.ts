@@ -43,11 +43,6 @@ export class GameController {
 		}, HttpStatus.OK);
 	}
 
-	// @Post('/out')
-	// exitRoom(@MessageBody() body): string {
-	// 	return this.gameService.exitRoom(body);
-	// }
-
 	@Get('/list')
 	getAllList(): GameListResponseDto[]{
 		const list: GameListResponseDto[] = [];

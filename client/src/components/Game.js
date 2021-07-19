@@ -118,6 +118,7 @@ const Game = () => {
 
   const exitClick = () => {
     if (window.confirm('게임에서 나가시겠습니까?')) {
+      console.log('exitusername', username);
       socket.emit('exitGame', { username: username });
       document.removeEventListener('spaceup', spaceup);
       window.location.href = '/';

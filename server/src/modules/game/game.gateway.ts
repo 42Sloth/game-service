@@ -11,6 +11,8 @@ import {
   import * as path from 'path';
 import { Game, Paddle } from './game';
 import { BadRequestException, ConflictException, NotAcceptableException } from '@nestjs/common';
+import { match } from 'assert';
+import { elementAt } from 'rxjs';
 
 
   export interface IroomToGame {
@@ -23,7 +25,7 @@ import { BadRequestException, ConflictException, NotAcceptableException } from '
 
   export const userToRoom: IuserToRoom = {};
   export const roomToGame: IroomToGame = {};
-  export const matchQueue: Paddle[] = [];
+  export let matchQueue: Paddle[] = [];
 
   dotenv.config({ path: path.join(__dirname, '../../../.env') });
   @WebSocketGateway(+process.env.PORT, { namespace: 'game' })
@@ -34,6 +36,46 @@ import { BadRequestException, ConflictException, NotAcceptableException } from '
       ) {}
     @WebSocketServer()
     server: Server;
+
+    @SubscribeMessage('exitGame')
+    exitGame(@ConnectedSocket() client: Socket, @MessageBody() body) {
+      console.log("gooood", body.username);
+      const username: string = body.username;
+      const roomId: string = userToRoom[username];
+      const game: Game = roomToGame[roomId];
+
+      // 방장이 나갔으면
+      if (game.players[0].username === username) {
+        // 두 명이 있는데 나갔으면 클라이언트가 방장이 된다.
+        if (game.players.length === 2) {
+          const guestName : string = game.players[1].username;
+          game.players.shift()
+          game.players.shift()
+          userToRoom[username] = null
+          delete userToRoom[username]
+          game.players.push(new Paddle('left', guestName));
+          if (game.access === true)
+            matchQueue.push(game.players[0]);
+        }
+        // 한명이 있는데 나갔으면 방터트려
+        else if (game.players.length === 1) {
+          roomToGame[roomId] = null
+          userToRoom[username] = null
+          delete roomToGame[roomId]
+          delete userToRoom[username]
+          matchQueue = matchQueue.filter(ele => ele.username !== username)
+        }
+      }
+      // 클라이언트가 나갔으면
+      if (game.players.length == 2 && game.players[1].username === username) {
+        game.players.pop()
+        userToRoom[username] = null
+        delete userToRoom[username]
+        if (game.access === true)
+          matchQueue.push(game.players[0])
+      }
+      // client.leave(roomId);
+    }
 
     @SubscribeMessage('fastEnter')
     fastEnter(@ConnectedSocket() client: Socket, @MessageBody() body) {
