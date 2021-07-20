@@ -11,8 +11,7 @@ const colors = { 0: '#b71540', 1: '#ffda79', 2: '#0a3d62', 3: '#78e08f' };
 const Home = () => {
   const [gameList, setGameList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [password, setPassword] = useState({});
-  const [pwIsVerified, setPwIsVerified] = useState({});
+  let password = '';
 
   const getList = async () => {
     try {
@@ -24,16 +23,26 @@ const Home = () => {
   };
 
   const handleClick = e => {
-    console.log('id', e.target.id);
     if (e.target.id === '0') window.location.href = `/game?id=${e.target.id}&type=0`;
     else {
-      if (e.target.value === 'selectEnter') window.location.href = `/game?id=${e.target.id}&type=2`;
-      else if (e.target.value === 'spectEnter')
-        window.location.href = `/game?id=${e.target.id}&type=3`;
+      const roomId = e.target.id;
+      const mode = e.target.value;
+      if (gameList[e.target.name].type === 'private') {
+        password = window.prompt('4자리 비밀번호를 입력해주세요');
+        console.log('password', password);
+        if (password) {
+          enterPrivateRoom(roomId, password, mode);
+        }
+      } else {
+        if (e.target.value === 'selectEnter')
+          window.location.href = `/game?id=${e.target.id}&type=2`;
+        else if (e.target.value === 'spectEnter')
+          window.location.href = `/game?id=${e.target.id}&type=3`;
+      }
     }
   };
 
-  const handleClickStats = e => {
+  const handleClickStats = () => {
     window.location.href = '/stats';
   };
 
@@ -55,25 +64,20 @@ const Home = () => {
     }
   };
 
-  const handleChange = e => {
-    setPassword({ [e.target.id]: e.target.value });
-  };
-
-  const enterPrivateRoom = async e => {
+  const enterPrivateRoom = async (roomId, password, mode) => {
     try {
       const response = await axios.post(`${res_url}/game/checkRoomValidate`, {
-        roomId: e.target.id,
-        password: password[e.target.id]
+        roomId: roomId,
+        password: password,
+        mode: mode
       });
-      // window.location.href = `/game?id=${e.target.id}&type=2`;
-      setPwIsVerified({ ...pwIsVerified, [e.target.id]: true });
+      if (mode === 'selectEnter') window.location.href = `/game?id=${roomId}&type=2`;
+      else if (mode === 'spectEnter') window.location.href = `/game?id=${roomId}&type=3`;
     } catch (err) {
       if (err.response.status === 400) {
         alert('비밀번호가 틀렸습니다!');
-        setPwIsVerified({ ...pwIsVerified, [e.target.id]: false });
       } else if (err.response.status === 409) {
-        // alert('방이 꽉 찼습니다!');
-        setPwIsVerified({ ...pwIsVerified, [e.target.id]: true });
+        alert('방이 꽉 찼습니다!');
       }
       console.log(err);
     }
@@ -94,7 +98,7 @@ const Home = () => {
         <Modal open={modalOpen} close={closeModal} create={createRoom} header='Create Room'></Modal>
       )}
       <h1>게임 리스트</h1>
-      {gameList.map(game => {
+      {gameList.map((game, idx) => {
         return (
           <div key={game.roomId} style={{ display: 'flex' }}>
             {game.type === 'private' && <div>🔐</div>}
@@ -103,36 +107,16 @@ const Home = () => {
             <div style={{ margin: '3px' }}>
               {game.rightPlayer === 'waiting' ? '???' : game.rightPlayer}
             </div>
-            {game.type === 'private' && (
-              <div>
-                <input
-                  id={game.roomId}
-                  placeholder='4자리 비밀번호 입력하세요'
-                  value={password[game.roomId]}
-                  onChange={handleChange}
-                ></input>
-                <button id={game.roomId} onClick={enterPrivateRoom}>
-                  비밀번호 검증
-                </button>
-              </div>
-            )}
             <button
               id={game.roomId}
+              name={idx}
               onClick={handleClick}
               value='selectEnter'
-              disabled={
-                game.rightPlayer !== 'waiting' ||
-                (game.type === 'private' && !pwIsVerified[game.roomId])
-              }
+              // disabled={game.rightPlayer !== 'waiting'}
             >
               플레이어로 입장
             </button>
-            <button
-              id={game.roomId}
-              onClick={handleClick}
-              value='spectEnter'
-              disabled={game.type === 'private' && !pwIsVerified[game.roomId]}
-            >
+            <button id={game.roomId} name={idx} onClick={handleClick} value='spectEnter'>
               관전자로 입장
             </button>
           </div>

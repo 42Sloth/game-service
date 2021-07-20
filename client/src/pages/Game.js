@@ -103,6 +103,9 @@ const Game = () => {
 
   const drawGame = gameState => {
     if (!context) return;
+    if (gameState.players[0].username === username) setReady(gameState.players[0].ready);
+    else if (gameState.players[1] && gameState.players[1].username === username)
+      setReady(gameState.players[1].ready);
     requestAnimationFrame(() => {
       draw(gameState);
     });
@@ -118,7 +121,6 @@ const Game = () => {
 
   const exitClick = () => {
     if (window.confirm('게임에서 나가시겠습니까?')) {
-      console.log('exitusername', username);
       socket.emit('exitGame', { username: username });
       document.removeEventListener('spaceup', spaceup);
       window.location.href = '/';

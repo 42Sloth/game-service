@@ -32,7 +32,7 @@ export class GameController {
 					error: '잘못된 패스워드 혹은 roomID 입니다.'},
 					HttpStatus.BAD_REQUEST);
 		}
-		if (game.players.length == 2)
+		if (body.mode !== 'spectEnter' && game.players.length == 2)
 			throw new HttpException({
 				status: HttpStatus.CONFLICT,
 				error: '방이 꽉 찼습니다.'},
