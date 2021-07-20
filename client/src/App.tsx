@@ -1,8 +1,8 @@
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import './App.css';
-import Game from './components/Game';
-import Home from './components/Home';
-import Stats from './components/Stats';
+import Game from './pages/Game';
+import Home from './pages/Home';
+import Stats from './pages/Stats';
 
 const App: React.FC = () => {
   return (

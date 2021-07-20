@@ -6,7 +6,7 @@ const Modal = props => {
   const [userInputs, setUserInputs] = useState({
     username: '',
     roomName: '',
-    access: 'public',
+    type: 'public',
     password: '',
     speed: 'moderate',
     ball: 'xl',
@@ -39,20 +39,20 @@ const Modal = props => {
             <input
               type='radio'
               value='public'
-              name='access'
-              checked={userInputs['access'] === 'public'}
+              name='type'
+              checked={userInputs['type'] === 'public'}
               onChange={handleChange}
             />
             public
             <input
               type='radio'
               value='private'
-              name='access'
-              checked={userInputs['access'] === 'private'}
+              name='type'
+              checked={userInputs['type'] === 'private'}
               onChange={handleChange}
             />
             private
-            {userInputs['access'] === 'private' && (
+            {userInputs['type'] === 'private' && (
               <input type='password' maxLength='4' name='password' onChange={handleChange} />
             )}
             <h3>Speed</h3>

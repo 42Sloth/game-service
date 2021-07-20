@@ -106,7 +106,7 @@ export class Game {
     endScore: number;
     startAt: Date;
     endAt: Date;
-    access: boolean;
+    type: string;
     password: string;
 
     constructor() {
@@ -121,11 +121,11 @@ export class Game {
       this.endScore = 5;
       this.startAt = new Date();
       this.endAt = new Date();
-      this.access = true;
+      this.type = 'public';
     }
 
     setPrivate(password: string) {
-      this.access = false;
+      this.type = 'private';
       this.password = password;
     }
 
