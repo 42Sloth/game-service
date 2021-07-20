@@ -39,22 +39,26 @@ import { elementAt } from 'rxjs';
 
     @SubscribeMessage('exitGame')
     exitGame(@ConnectedSocket() client: Socket, @MessageBody() body) {
-      console.log("gooood", body.username);
+      // console.log("gooood", body.username);
       const username: string = body.username;
       const roomId: string = userToRoom[username];
       const game: Game = roomToGame[roomId];
 
+      if (!game)
+        return ;
       // 방장이 나갔으면
       if (game.players[0].username === username) {
         // 두 명이 있는데 나갔으면 클라이언트가 방장이 된다.
         if (game.players.length === 2) {
+
           const guestName : string = game.players[1].username;
           game.players.shift()
           game.players.shift()
           userToRoom[username] = null
           delete userToRoom[username]
           game.players.push(new Paddle('left', guestName));
-          if (game.access === true)
+          game.leftOrRight[guestName] = 0;
+          if (game.type === 'public')
             matchQueue.push(game.players[0]);
         }
         // 한명이 있는데 나갔으면 방터트려
@@ -71,7 +75,7 @@ import { elementAt } from 'rxjs';
         game.players.pop()
         userToRoom[username] = null
         delete userToRoom[username]
-        if (game.access === true)
+        if (game.type === 'public')
           matchQueue.push(game.players[0])
       }
       // client.leave(roomId);
@@ -92,7 +96,7 @@ import { elementAt } from 'rxjs';
           if (game.isStarted)
             this.server.to(roomId).emit('permitToCtrl');
           else {
-            console.log('here-===============')
+            // console.log('here-===============')
             this.gameService.waitingInterval(this.server, roomId, game);
           }
           return ;
@@ -100,17 +104,17 @@ import { elementAt } from 'rxjs';
 
         // 새로운 방 생성
         if (matchQueue.length == 0) {
-          const roomId = this.gameService.createDefaultRoom(username);
+          const roomId = this.gameService.createDefaultRoom(username, 'public');
           const game = roomToGame[roomId];
           client.join(roomId);
           this.gameService.waitingInterval(this.server, roomId, game);
         }
         // 게스트 들어왔을 때
         else if (matchQueue.length >= 1) {
-          console.log('matchQueue size : ', matchQueue.length);
+          // console.log('matchQueue size : ', matchQueue.length);
           const roomOwner = matchQueue.shift();
-          console.log('Owner: ', roomOwner);
-          console.log('guest in : ', matchQueue);
+          // console.log('Owner: ', roomOwner);
+          // console.log('guest in : ', matchQueue);
           const roomId = userToRoom[roomOwner.username];
           const game = roomToGame[roomId];
           const roomGuest: Paddle = new Paddle('right', username);
@@ -121,6 +125,7 @@ import { elementAt } from 'rxjs';
           game.players[1].username = roomGuest.username;
           game.leftOrRight[roomGuest.username] = 1;
           client.join(roomId);
+          console.log('guest in ', game)
           this.gameService.waitingInterval(this.server, roomId, game);
         }
       } catch (e) {
@@ -150,7 +155,7 @@ import { elementAt } from 'rxjs';
       //TODO: 비번 걸려있으면 해제하는 로직 작성해야 함.
       // if (game.access === false && game.password !== body.password)
       //   throw BadRequestException;
-      if (game.access === true)
+      if (game.type === 'public')
         matchQueue.shift();
       const roomGuest: Paddle = new Paddle('right', body.username);
       game.turn = roomGuest;

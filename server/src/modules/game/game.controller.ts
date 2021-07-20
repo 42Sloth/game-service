@@ -25,7 +25,7 @@ export class GameController {
 				error: 'roomId가 잘못 되었습니다.'},
 				HttpStatus.BAD_REQUEST);
 		const game: Game = roomToGame[body.roomId];
-		if (game.access === false) {
+		if (game.type === 'private') {
 			if (!body.password || body.password !== game.password)
 				throw new HttpException({
 					status: HttpStatus.BAD_REQUEST,
@@ -49,10 +49,10 @@ export class GameController {
 		for(let key of Object.keys(roomToGame)) {
 			const game = roomToGame[key];
 			if (game.players.length === 2) {
-				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, game.players[1].username, game.access === true ? 'public': 'private');
+				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, game.players[1].username, game.type);
 				list.push(ele);
 			} else if (game.players.length === 1) {
-				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, 'waiting', game.access === true ? 'public': 'private');
+				const ele: GameListResponseDto = new GameListResponseDto(key, game.players[0].username, 'waiting', game.type);
 				list.push(ele);
 			}
 		}

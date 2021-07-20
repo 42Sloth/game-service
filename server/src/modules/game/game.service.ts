@@ -11,7 +11,7 @@ import { NotAcceptableException } from '@nestjs/common';
 
 export class GameService {
     waitingInterval(server: Server, room: string, game: Game) {
-        console.log(game);
+        // console.log(game);
         try {
             setInterval(() =>{
                 server.to(room).emit('drawGame', game);
@@ -50,7 +50,7 @@ export class GameService {
         }
     }
 
-    createDefaultRoom(username: string) : string {
+    createDefaultRoom(username: string, access: string) : string {
         if (!username)
             throw (NotAcceptableException);
         const roomId = uuid();
@@ -58,7 +58,8 @@ export class GameService {
         const game = new Game();
         const paddle: Paddle = new Paddle('left', username);
         game.players.push(paddle);
-        matchQueue.push(paddle);
+        if (access === 'public')
+            matchQueue.push(paddle);
         roomToGame[roomId] = game;
         userToRoom[username] = roomId;
         game.leftOrRight[username] = 0;
@@ -66,17 +67,17 @@ export class GameService {
     }
 
     createCustomRoom(data) : string {
-        const roomId = this.createDefaultRoom(data.username);
+        const roomId = this.createDefaultRoom(data.username, data.type);
         const game: Game = roomToGame[roomId];
         game.ball.setSpeedByType(data.speed);
         game.ball.setSizeByType(data.ball);
         game.color = data.mapColor;
         // TODO:  roomName, ball 처리 해야함
-        if (data.access === 'private')
+        if (data.type === 'private')
             game.setPrivate(data.password);
-        // else
-        //     matchQueue.push(game.players[0]);
-        console.log(game.players);
+        else
+            matchQueue.push(game.players[0]);
+        // console.log(game.players);
         return roomId;
     }
 
