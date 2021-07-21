@@ -112,7 +112,7 @@ const Home = () => {
               name={idx}
               onClick={handleClick}
               value='selectEnter'
-              // disabled={game.rightPlayer !== 'waiting'}
+              disabled={game.rightPlayer !== 'waiting'}
             >
               플레이어로 입장
             </button>
