@@ -183,6 +183,9 @@ const Game = () => {
 
   return (
     <div>
+      <audio autoPlay={true} loop={true} controls>
+        <source src={process.env.PUBLIC_URL + '/Raindrop_Flower.mp3'}></source>
+      </audio>
       <canvas></canvas>
       <button onClick={exitClick} disabled={ready}>
         나가기
