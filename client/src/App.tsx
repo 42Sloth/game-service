@@ -7,13 +7,13 @@ import Stats from './pages/Stats';
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-    <Switch>
-      <Route path='/' exact component={Home}/>
-      <Route path='/game' component={Game}/>
-      <Route path='/stats' component={Stats}/>
-    </Switch>
+      <Switch>
+        <Route path="/" exact component={Home} />
+        <Route path="/game" component={Game} />
+        <Route path="/stats" component={Stats} />
+      </Switch>
     </BrowserRouter>
   );
-}
+};
 
 export default App;
