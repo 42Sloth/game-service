@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { getParameterByName } from '../utils/utils';
 
@@ -106,17 +106,24 @@ const Game = () => {
     if (gameState.players[0].username === username) setReady(gameState.players[0].ready);
     else if (gameState.players[1] && gameState.players[1].username === username)
       setReady(gameState.players[1].ready);
-    requestAnimationFrame(() => {
-      draw(gameState);
-    });
+    draw(gameState);
   };
 
   const endGame = gameState => {
     document.removeEventListener('keyup', keyup);
     document.removeEventListener('keydown', keydown);
+
+    /* drawGame에서 게임 시작 전의 player.ready 값을 ready state에 set 해줌.
+     * 게임 시작 이후 ready state값은 true 인 상태.
+     * 게임 종료 이후 나가기 버튼을 활성화 시키기 위해 ready state값을 false로 변경해야 함.
+     * 게임 종료 'drawGame' 이벤트 리스너를 제거해
+     * 아래의 ready state를 false로 변경하는 부분이 유효하도록 함.
+     * 제거하지 않을 경우 drawGame()에서 계속 ready state값이 true가 됨.
+     */
+    socket.off('drawGame', drawGame);
     const msg = `winner: ${gameState.winner}\n 메인 화면으로 돌아가시겠습니까?`;
     if (window.confirm(msg)) window.location.href = '/';
-    setReady(ready => !ready);
+    else setReady(false);
   };
 
   const exitClick = () => {
