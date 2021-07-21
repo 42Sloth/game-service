@@ -1,31 +1,27 @@
 import { useState } from 'react';
-import axios from 'axios';
 import '../styles/Stats.css';
-
-const ip = process.env.REACT_APP_GAME_SERVER_IP;
-const port = process.env.REACT_APP_GAME_SERVER_PORT;
-const req_url = `http://${ip}:${port}/game/result`;
+import { getAllStats, getWinStats, getLoseStats, getAllGames } from '../api/api';
 
 const Stats = () => {
   const [username, setUsername] = useState('');
   const [userStats, setUserStats] = useState({
     all: 0,
     win: 0,
-    lose: 0
+    lose: 0,
   });
   const [userGameHistory, setUserGameHistory] = useState([]);
 
   const getStatsCount = async () => {
     try {
-      const all_res = await axios.get(`${req_url}/${username}/count/all`);
+      const all_res = await getAllStats(username);
       try {
-        const win_res = await axios.get(`${req_url}/${username}/count/win`);
+        const win_res = await getWinStats(username);
         try {
-          const lose_res = await axios.get(`${req_url}/${username}/count/lose`);
+          const lose_res = await getLoseStats(username);
           setUserStats({
             all: all_res.data,
             win: win_res.data,
-            lose: lose_res.data
+            lose: lose_res.data,
           });
         } catch (err) {
           console.log(err);
@@ -40,9 +36,8 @@ const Stats = () => {
 
   const getGameHistory = async () => {
     try {
-      const response = await axios.get(`${req_url}/${username}/all`);
+      const response = await getAllGames(username);
       setUserGameHistory(response.data);
-      console.log('history', response.data);
     } catch (err) {
       console.log(err);
     }
@@ -53,11 +48,11 @@ const Stats = () => {
     getGameHistory();
   };
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setUsername(e.target.value);
   };
 
-  const handleKeyPress = e => {
+  const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       getStatsCount();
       getGameHistory();
@@ -71,21 +66,20 @@ const Stats = () => {
           value={username}
           onChange={handleChange}
           onKeyPress={handleKeyPress}
-          placeholder='Input username'
+          placeholder="Input username"
         ></input>
         <button onClick={handleClick}>검색</button>
       </div>
-      <div className='wrapper'>
+      <div className="wrapper">
         <div>총 전적: </div>
         <div>{userStats.all}전</div>
         <div>{userStats.win}승</div>
         <div>{userStats.lose}패</div>
       </div>
-      {userGameHistory.map(game => {
-        const { id, playerLeft, playerRight, playerLeftScore, playerRightScore, winner, timer } =
-          game;
+      {userGameHistory.map((game) => {
+        const { id, playerLeft, playerRight, playerLeftScore, playerRightScore, winner, timer } = game;
         return (
-          <div key={id} className='wrapper'>
+          <div key={id} className="wrapper">
             <div>{playerLeft}/</div>
             <div>{playerRight}/</div>
             <div>{playerLeftScore}/</div>
