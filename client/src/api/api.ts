@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { IRoom } from '../interface/interface';
 
 const ip = process.env.REACT_APP_GAME_SERVER_IP;
 const port = process.env.REACT_APP_GAME_SERVER_PORT;
@@ -12,26 +13,26 @@ export const getList = async () => {
   return await instance.get(`/game/list`);
 };
 
-export const createRoom = async (roomInfo) => {
+export const createRoom = async (roomInfo: IRoom) => {
   return await instance.post(`/game/new`, roomInfo);
 };
 
-export const enterPrivateRoom = async (data) => {
+export const enterPrivateRoom = async (data: { roomId: string; password: string; mode: string }) => {
   return await instance.post(`/game/checkRoomValidate`, data);
 };
 
-export const getAllStats = async (username) => {
+export const getAllStats = async (username: string) => {
   return await instance.get(`/game/result/${username}/count/all`);
 };
 
-export const getWinStats = async (username) => {
+export const getWinStats = async (username: string) => {
   return await instance.get(`/game/result/${username}/count/win`);
 };
 
-export const getLoseStats = async (username) => {
+export const getLoseStats = async (username: string) => {
   return await instance.get(`/game/result/${username}/count/lose`);
 };
 
-export const getAllGames = async (username) => {
+export const getAllGames = async (username: string) => {
   return await instance.get(`game/result/${username}/all`);
 };

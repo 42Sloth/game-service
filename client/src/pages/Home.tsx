@@ -1,16 +1,10 @@
 import { useEffect, useState } from 'react';
 import Modal from '../components/Modal';
 import { getList, enterPrivateRoom } from '../api/api';
-
-interface IGame {
-  roomId: string;
-  leftPlayer: string;
-  rightPlayer: string;
-  type: string;
-}
+import { IGameList } from '../interface/interface';
 
 const Home = () => {
-  const [gameList, setGameList] = useState<Array<IGame>>([]);
+  const [gameList, setGameList] = useState<Array<IGameList>>([]);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   let password: string | null = null;
 
@@ -52,7 +46,7 @@ const Home = () => {
     setModalOpen(false);
   };
 
-  const reqEnter = async (roomId: string, pssword: string, mode: string) => {
+  const reqEnter = async (roomId: string, password: string, mode: string) => {
     try {
       await enterPrivateRoom({ roomId: roomId, password: password, mode: mode });
       if (mode === 'selectEnter') window.location.href = `/game?id=${roomId}&type=2`;

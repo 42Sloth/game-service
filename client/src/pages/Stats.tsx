@@ -1,16 +1,7 @@
 import { useState } from 'react';
 import '../styles/Stats.css';
 import { getAllStats, getWinStats, getLoseStats, getAllGames } from '../api/api';
-
-interface IGameStat {
-  id: number;
-  playerLeft: string;
-  playerRight: string;
-  winner: string;
-  playerLeftScore: number;
-  playerRightScore: number;
-  playTime: number;
-}
+import { IGameStat } from '../interface/interface';
 
 const Stats = () => {
   const [username, setUsername] = useState<string>('');

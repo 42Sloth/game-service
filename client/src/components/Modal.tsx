@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
 import { createRoom } from '../api/api';
+import { IRoom } from '../interface/interface';
 import '../styles/Modal.css';
 
 const colors: any = { 0: '#b71540', 1: '#ffda79', 2: '#0a3d62', 3: '#78e08f' };
-
-interface IRoom {
-  username: string;
-  roomName: string;
-  type: string;
-  password: string;
-  speed: string;
-  ball: string;
-  mapColor: string;
-}
 
 interface ModalProps {
   open: boolean;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { getParameterByName } from '../utils/utils';
+import { IGame, IGameResult } from '../interface/interface';
 
 const ip = process.env.REACT_APP_GAME_SOCKET_IP;
 const port = process.env.REACT_APP_GAME_SOCKET_PORT;
@@ -10,40 +11,41 @@ const HEIGHT = 480;
 
 const Game = () => {
   const socket = io(`ws://${ip}:${port}/game`); // client가 가지고있는 server랑 통신할 수 있는 유일한 통로
-  let username = '';
+  let username: string | null = '';
 
-  let canvas = null;
-  let context = null;
+  let canvas: HTMLCanvasElement | null = null;
+  let context: CanvasRenderingContext2D | null = null;
 
   const [ready, setReady] = useState(false);
 
-  const keydown = e => {
+  const keydown = (e: any) => {
     if (e.keyCode === 38 || e.keyCode === 40) {
       socket.emit('key-action', { username: username, type: 'down', keyCode: e.keyCode });
     }
   };
 
-  const keyup = e => {
+  const keyup = (e: any) => {
     if (e.keyCode === 38 || e.keyCode === 40) {
       socket.emit('key-action', { username: username, type: 'up', keyCode: e.keyCode });
     }
   };
 
-  const spaceup = e => {
+  const spaceup = (e: any) => {
     if (e.keyCode === 32) {
       socket.emit('ready', { username: username, type: 'up', keyCode: e.keyCode });
-      setReady(ready => !ready);
+      setReady((ready) => !ready);
     }
   };
 
   const permitToCtrl = () => {
-    // console.log('permitToCtrl');
     document.removeEventListener('keyup', spaceup);
     document.addEventListener('keydown', keydown);
     document.addEventListener('keyup', keyup);
   };
 
-  const draw = gameState => {
+  const draw = (gameState: IGame) => {
+    if (!context) return;
+
     const player_left = gameState.players[0];
     const player_right = gameState.players[1];
 
@@ -55,8 +57,7 @@ const Game = () => {
     if (!gameState.isStarted) {
       context.fillStyle = '#A0D4F7';
       if (player_left && player_left.ready === true) context.fillRect(0, 0, WIDTH / 2, HEIGHT);
-      if (player_right && player_right.ready === true)
-        context.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
+      if (player_right && player_right.ready === true) context.fillRect(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
 
       context.fillStyle = '#aaa69d';
       context.font = '20px Courier New';
@@ -65,11 +66,9 @@ const Game = () => {
     context.fillStyle = '#aaa69d';
 
     // draw player1
-    if (player_left)
-      context.fillRect(player_left.x, player_left.y, player_left.width, player_left.height);
+    if (player_left) context.fillRect(player_left.x, player_left.y, player_left.width, player_left.height);
     // draw player2
-    if (player_right)
-      context.fillRect(player_right.x, player_right.y, player_right.width, player_right.height);
+    if (player_right) context.fillRect(player_right.x, player_right.y, player_right.width, player_right.height);
 
     // draw net
     context.beginPath();
@@ -101,15 +100,14 @@ const Game = () => {
     }
   };
 
-  const drawGame = gameState => {
+  const drawGame = (gameState: IGame) => {
     if (!context) return;
     if (gameState.players[0].username === username) setReady(gameState.players[0].ready);
-    else if (gameState.players[1] && gameState.players[1].username === username)
-      setReady(gameState.players[1].ready);
+    else if (gameState.players[1] && gameState.players[1].username === username) setReady(gameState.players[1].ready);
     draw(gameState);
   };
 
-  const endGame = gameState => {
+  const endGame = (gameResult: IGameResult) => {
     document.removeEventListener('keyup', keyup);
     document.removeEventListener('keydown', keydown);
 
@@ -121,7 +119,7 @@ const Game = () => {
      * 제거하지 않을 경우 drawGame()에서 계속 ready state값이 true가 됨.
      */
     socket.off('drawGame', drawGame);
-    const msg = `winner: ${gameState.winner}\n 메인 화면으로 돌아가시겠습니까?`;
+    const msg = `winner: ${gameResult.winner}\n 메인 화면으로 돌아가시겠습니까?`;
     if (window.confirm(msg)) window.location.href = '/';
     else setReady(false);
   };
@@ -135,10 +133,10 @@ const Game = () => {
   };
 
   useEffect(() => {
-    // /game?id=${e.target.id}&type=0
-    // /game?id=${type}&type=${type}&username=${roomInfo.username}
-    // /game?id=${e.target.id}&type=2
-    // /game?id=${e.target.id}&type=3
+    // /game?id=0&type=0
+    // /game?id=${roomId}&type=1&username=${roomInfo.username}
+    // /game?id=${roomId}&type=2
+    // /game?id=${roomId}&type=3
     const type = getParameterByName('type');
     const id = getParameterByName('id');
     // 빠른 시작
@@ -174,6 +172,7 @@ const Game = () => {
       socket.emit('spectEnter', { roomId: id });
     }
     canvas = document.querySelector('canvas');
+    if (!canvas) return;
     context = canvas.getContext('2d');
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
