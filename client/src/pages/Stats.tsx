@@ -2,14 +2,25 @@ import { useState } from 'react';
 import '../styles/Stats.css';
 import { getAllStats, getWinStats, getLoseStats, getAllGames } from '../api/api';
 
+interface IGameStat {
+  id: number;
+  playerLeft: string;
+  playerRight: string;
+  winner: string;
+  playerLeftScore: number;
+  playerRightScore: number;
+  playTime: number;
+}
+
 const Stats = () => {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState<string>('');
   const [userStats, setUserStats] = useState({
     all: 0,
     win: 0,
     lose: 0,
   });
-  const [userGameHistory, setUserGameHistory] = useState([]);
+
+  const [userGameHistory, setUserGameHistory] = useState<Array<IGameStat>>([]);
 
   const getStatsCount = async () => {
     try {
@@ -48,11 +59,11 @@ const Stats = () => {
     getGameHistory();
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: any) => {
     setUsername(e.target.value);
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
       getStatsCount();
       getGameHistory();
@@ -77,7 +88,7 @@ const Stats = () => {
         <div>{userStats.lose}패</div>
       </div>
       {userGameHistory.map((game) => {
-        const { id, playerLeft, playerRight, playerLeftScore, playerRightScore, winner, timer } = game;
+        const { id, playerLeft, playerRight, winner, playerLeftScore, playerRightScore, playTime } = game;
         return (
           <div key={id} className="wrapper">
             <div>{playerLeft}/</div>
@@ -85,7 +96,7 @@ const Stats = () => {
             <div>{playerLeftScore}/</div>
             <div>{playerRightScore}/</div>
             <div>{winner}/</div>
-            <div>{timer}</div>
+            <div>{playTime}초</div>
           </div>
         );
       })}
