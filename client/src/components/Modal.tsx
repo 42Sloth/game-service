@@ -38,7 +38,7 @@ const Modal = ({ open, close, header }: ModalProps) => {
       //   await checkUserRoom(username);
       roomInfo['mapColor'] = colors[roomInfo['mapColor']];
       const response = await createRoom(roomInfo);
-      history.push(`/game?id=${response.data}&username=${roomInfo.username}&type=1`);
+      history.push(`/game`, {roomId: response.data, mode: 'createEnter', username: roomInfo.username});
       // } catch (err) {
       //   if (err.response.status === 400) {
       //     alert('이미 게임에 참여 중입니다');
