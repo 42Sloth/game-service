@@ -36,3 +36,7 @@ export const getLoseStats = async (username: string) => {
 export const getAllGames = async (username: string) => {
   return await instance.get(`game/result/${username}/all`);
 };
+
+export const checkUserRoom = async (username: string) => {
+  return await instance.get(`game/room/${username}`);
+};
