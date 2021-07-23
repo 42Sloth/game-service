@@ -22,7 +22,7 @@ const Home = () => {
   const handleClick = async (e: any) => {
     const roomId = e.target.id;
     const mode = e.target.value;
-    if (roomId === '0') history.push(`/game?id=${roomId}&type=0`);
+    if (roomId === '0') history.push(`/game`, {roomId: roomId, mode: mode});
     else {
       if (gameList[e.target.name].type === 'private') {
         password = window.prompt('4자리 비밀번호를 입력해주세요');
@@ -34,13 +34,13 @@ const Home = () => {
           // roomId 유효성 검사
           // try {
           //   await checkUserRoom(username);
-          history.push(`/game?id=${roomId}&type=2`);
+          history.push(`/game`, {roomId: roomId, mode: mode});
           // } catch (err) {
           //   if (err.response.status === 400) {
           //     alert('이미 게임에 참여 중입니다');
           //   }
           // }
-        } else if (mode === 'spectEnter') history.push(`/game?id=${roomId}&type=3`);
+        } else if (mode === 'spectEnter') history.push(`/game`, {roomId: roomId, mode: mode});
       }
     }
   };
@@ -60,8 +60,8 @@ const Home = () => {
   const reqEnter = async (roomId: string, password: string, mode: string) => {
     try {
       await enterPrivateRoom({ roomId: roomId, password: password, mode: mode });
-      if (mode === 'selectEnter') history.push(`/game?id=${roomId}&type=2`);
-      else if (mode === 'spectEnter') history.push(`/game?id=${roomId}&type=3`);
+      if (mode === 'selectEnter') history.push(`/game`, {roomId: roomId, mode: mode});
+      else if (mode === 'spectEnter') history.push(`/game`, {roomId: roomId, mode: mode});
     } catch (err) {
       if (err.response.status === 400) {
         alert('비밀번호가 틀렸습니다!');

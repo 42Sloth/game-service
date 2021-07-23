@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import io from 'socket.io-client';
-import { getParameterByName } from '../utils/utils';
 import { IGame, IGameResult } from '../interface/interface';
 
 const ip = process.env.REACT_APP_GAME_SOCKET_IP;
@@ -10,13 +9,21 @@ const port = process.env.REACT_APP_GAME_SOCKET_PORT;
 const WIDTH = 720;
 const HEIGHT = 480;
 
+interface ILocationData {
+  roomId: string
+  mode: string
+  username: string | null
+}
+
 const Game = () => {
+  const location = useLocation<ILocationData>();
+  const roomId = location.state.roomId;
+  const mode = location.state.mode;
+  let username = location.state.username;
   const history = useHistory();
   const socket = io(`ws://${ip}:${port}/game`);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
-
-  let username: string | null = '';
 
   const keydown = (e: any) => {
     if (e.keyCode === 38 || e.keyCode === 40) {
@@ -120,7 +127,6 @@ const Game = () => {
      * 아래의 ready state를 false로 변경하는 부분이 유효하도록 함.
      * 제거하지 않을 경우 drawGame()에서 계속 ready state값이 true가 됨.
      */
-    socket.off('drawGame', drawGame);
     const msg = `winner: ${gameResult.winner}\n 메인 화면으로 돌아가시겠습니까?`;
     if (window.confirm(msg)) history.push('/');
     else setReady(false);
@@ -135,10 +141,8 @@ const Game = () => {
   };
 
   const init = async () => {
-    const type = getParameterByName('type');
-    const id = getParameterByName('id');
     // 빠른 시작
-    if (type === '0') {
+    if (mode === 'fastEnter') {
       while (!(username = prompt('닉네임?'))) {
         alert('닉네임을 입력해주세요!');
       }
@@ -147,27 +151,25 @@ const Game = () => {
       socket.on('permitToCtrl', permitToCtrl);
     }
     // 방 만들기
-    else if (type === '1') {
-      username = getParameterByName('username');
-
-      socket.emit('selectEnter', { roomId: id, username: username });
+    else if (mode === 'createEnter') {
+      socket.emit('selectEnter', { roomId: roomId, username: username });
       document.addEventListener('keyup', spaceup);
       socket.on('permitToCtrl', permitToCtrl);
     }
     // 플레이어로 게임 참여
-    else if (type === '2') {
+    else if (mode === 'selectEnter') {
       while (!(username = prompt('닉네임?'))) {
         alert('닉네임을 입력해주세요!');
       }
       // TODO: 존재하는 room인지 확인하는 로직 추가
-      socket.emit('selectEnter', { roomId: id, username: username });
+      socket.emit('selectEnter', { roomId: roomId, username: username });
       document.addEventListener('keyup', spaceup);
       socket.on('permitToCtrl', permitToCtrl);
     }
     // 게임 관전
-    else if (type === '3') {
+    else if (mode === 'spectEnter') {
       // TODO: 존재하는 room인지 확인하는 로직 추가
-      socket.emit('spectEnter', { roomId: id });
+      socket.emit('spectEnter', { roomId: roomId });
     }
     socket.on('drawGame', drawGame);
     socket.on('endGame', endGame);
@@ -175,6 +177,7 @@ const Game = () => {
 
   useEffect(() => {
     init();
+    return () => { socket.close() }
   }, []);
 
   return (
