@@ -10,7 +10,7 @@ import { MessageBody } from '@nestjs/websockets';
 import { GameListResponseDto } from '../dtos/GameListResponseDto';
 import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
 import { Game } from './game';
-import { roomToGame } from './game.gateway';
+import { roomToGame, userToRoom } from './game.gateway';
 import { GameService } from './game.service';
 
 @Controller('game')
@@ -105,5 +105,26 @@ export class GameController {
   @Get('/result/:username/all')
   getAll(@Param('username') username: string): Promise<GameStatResponseDto[]> {
     return this.gameService.findByUsername(username);
+  }
+
+  // 유저가 방을 만들거나 게임에 참여하려할 때, 이미 참여하고 있는 게임이 있는지 확인
+  @Get('room/:username')
+  getUserRoom(@Param('username') username: string) {
+    if (userToRoom[username]) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: '이미 게임에 참여 중입니다.',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    throw new HttpException(
+      {
+        status: HttpStatus.OK,
+        error: '입장 가능하십니다.',
+      },
+      HttpStatus.OK,
+    );
   }
 }

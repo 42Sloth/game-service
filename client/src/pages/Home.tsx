@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import Modal from '../components/Modal';
-import { getList, enterPrivateRoom } from '../api/api';
+import { getList, enterPrivateRoom, checkUserRoom } from '../api/api';
 import { IGameList } from '../interface/interface';
 
 const Home = () => {
@@ -19,7 +19,7 @@ const Home = () => {
     }
   };
 
-  const handleClick = (e: any) => {
+  const handleClick = async (e: any) => {
     const roomId = e.target.id;
     const mode = e.target.value;
     if (roomId === '0') history.push(`/game?id=${roomId}&type=0`);
@@ -30,8 +30,17 @@ const Home = () => {
           reqEnter(roomId, password, mode);
         }
       } else {
-        if (mode === 'selectEnter') history.push(`/game?id=${roomId}&type=2`);
-        else if (mode === 'spectEnter') history.push(`/game?id=${roomId}&type=3`);
+        if (mode === 'selectEnter') {
+          // roomId 유효성 검사
+          // try {
+          //   await checkUserRoom(username);
+          history.push(`/game?id=${roomId}&type=2`);
+          // } catch (err) {
+          //   if (err.response.status === 400) {
+          //     alert('이미 게임에 참여 중입니다');
+          //   }
+          // }
+        } else if (mode === 'spectEnter') history.push(`/game?id=${roomId}&type=3`);
       }
     }
   };
@@ -59,7 +68,6 @@ const Home = () => {
       } else if (err.response.status === 409) {
         alert('방이 꽉 찼습니다!');
       }
-      console.log(err);
     }
   };
 

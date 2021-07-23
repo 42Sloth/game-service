@@ -134,11 +134,7 @@ const Game = () => {
     }
   };
 
-  useEffect(() => {
-    // /game?id=0&type=0
-    // /game?id=${roomId}&type=1&username=${roomInfo.username}
-    // /game?id=${roomId}&type=2
-    // /game?id=${roomId}&type=3
+  const init = async () => {
     const type = getParameterByName('type');
     const id = getParameterByName('id');
     // 빠른 시작
@@ -153,7 +149,7 @@ const Game = () => {
     // 방 만들기
     else if (type === '1') {
       username = getParameterByName('username');
-      // TODO: 존재하는 room인지 확인하는 로직 추가
+
       socket.emit('selectEnter', { roomId: id, username: username });
       document.addEventListener('keyup', spaceup);
       socket.on('permitToCtrl', permitToCtrl);
@@ -175,14 +171,18 @@ const Game = () => {
     }
     socket.on('drawGame', drawGame);
     socket.on('endGame', endGame);
+  };
+
+  useEffect(() => {
+    init();
   }, []);
 
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-        <audio autoPlay={true} loop={true} controls>
+        {/* <audio autoPlay={true} loop={true} controls>
           <source src={process.env.PUBLIC_URL + '/Raindrop_Flower.mp3'}></source>
-        </audio>
+        </audio> */}
         <button onClick={exitClick} disabled={ready}>
           나가기
         </button>
