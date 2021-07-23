@@ -48,6 +48,12 @@
   },
   "devDependencies": {
     "@types/socket.io-client": "^3.0.0",
-    "dotenv-cli": "^4.0.0"
+    "@typescript-eslint/eslint-plugin": "^4.28.4",
+    "@typescript-eslint/parser": "^4.28.4",
+    "dotenv-cli": "^4.0.0",
+    "eslint": "^7.31.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-plugin-prettier": "^3.4.0",
+    "prettier": "^2.3.2"
   }
 }
