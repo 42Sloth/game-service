@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import { createRoom } from '../api/api';
 import { IRoom } from '../interface/interface';
 import '../styles/Modal.css';
@@ -12,6 +13,7 @@ interface ModalProps {
 }
 
 const Modal = ({ open, close, header }: ModalProps) => {
+  const history = useHistory();
   const [userInputs, setUserInputs] = useState<IRoom>({
     username: '',
     roomName: '',
@@ -33,7 +35,7 @@ const Modal = ({ open, close, header }: ModalProps) => {
     try {
       roomInfo['mapColor'] = colors[roomInfo['mapColor']];
       const response = await createRoom(roomInfo);
-      window.location.href = `/game?id=${response.data}&username=${roomInfo.username}&type=1`;
+      history.push(`/game?id=${response.data}&username=${roomInfo.username}&type=1`);
     } catch (err) {
       console.log(err);
     }

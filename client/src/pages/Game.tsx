@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
 import { getParameterByName } from '../utils/utils';
 import { IGame, IGameResult } from '../interface/interface';
@@ -10,6 +11,7 @@ const WIDTH = 720;
 const HEIGHT = 480;
 
 const Game = () => {
+  const history = useHistory();
   const socket = io(`ws://${ip}:${port}/game`); // client가 가지고있는 server랑 통신할 수 있는 유일한 통로
   let username: string | null = '';
 
@@ -120,7 +122,7 @@ const Game = () => {
      */
     socket.off('drawGame', drawGame);
     const msg = `winner: ${gameResult.winner}\n 메인 화면으로 돌아가시겠습니까?`;
-    if (window.confirm(msg)) window.location.href = '/';
+    if (window.confirm(msg)) history.push('/');
     else setReady(false);
   };
 
@@ -128,7 +130,7 @@ const Game = () => {
     if (window.confirm('게임에서 나가시겠습니까?')) {
       socket.emit('exitGame', { username: username });
       document.removeEventListener('spaceup', spaceup);
-      window.location.href = '/';
+      history.push('/');
     }
   };
 
