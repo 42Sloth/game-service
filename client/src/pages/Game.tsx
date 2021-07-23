@@ -183,11 +183,16 @@ const Game = () => {
   }, []);
 
   return (
-    <div>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+        <audio autoPlay={true} loop={true} controls>
+          <source src={process.env.PUBLIC_URL + '/Raindrop_Flower.mp3'}></source>
+        </audio>
+        <button onClick={exitClick} disabled={ready}>
+          나가기
+        </button>
+      </div>
       <canvas></canvas>
-      <button onClick={exitClick} disabled={ready}>
-        나가기
-      </button>
     </div>
   );
 };
