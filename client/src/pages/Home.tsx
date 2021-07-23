@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { getList, enterPrivateRoom } from '../api/api';
 import { IGameList } from '../interface/interface';
 
 const Home = () => {
+  const history = useHistory();
   const [gameList, setGameList] = useState<Array<IGameList>>([]);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   let password: string | null = null;
@@ -20,7 +22,7 @@ const Home = () => {
   const handleClick = (e: any) => {
     const roomId = e.target.id;
     const mode = e.target.value;
-    if (roomId === '0') window.location.href = `/game?id=${roomId}&type=0`;
+    if (roomId === '0') history.push(`/game?id=${roomId}&type=0`);
     else {
       if (gameList[e.target.name].type === 'private') {
         password = window.prompt('4자리 비밀번호를 입력해주세요');
@@ -28,14 +30,14 @@ const Home = () => {
           reqEnter(roomId, password, mode);
         }
       } else {
-        if (mode === 'selectEnter') window.location.href = `/game?id=${roomId}&type=2`;
-        else if (mode === 'spectEnter') window.location.href = `/game?id=${roomId}&type=3`;
+        if (mode === 'selectEnter') history.push(`/game?id=${roomId}&type=2`);
+        else if (mode === 'spectEnter') history.push(`/game?id=${roomId}&type=3`);
       }
     }
   };
 
   const handleClickStats = () => {
-    window.location.href = '/stats';
+    history.push('/stats');
   };
 
   const handleMakeRoom = () => {
@@ -49,8 +51,8 @@ const Home = () => {
   const reqEnter = async (roomId: string, password: string, mode: string) => {
     try {
       await enterPrivateRoom({ roomId: roomId, password: password, mode: mode });
-      if (mode === 'selectEnter') window.location.href = `/game?id=${roomId}&type=2`;
-      else if (mode === 'spectEnter') window.location.href = `/game?id=${roomId}&type=3`;
+      if (mode === 'selectEnter') history.push(`/game?id=${roomId}&type=2`);
+      else if (mode === 'spectEnter') history.push(`/game?id=${roomId}&type=3`);
     } catch (err) {
       if (err.response.status === 400) {
         alert('비밀번호가 틀렸습니다!');
@@ -62,6 +64,7 @@ const Home = () => {
   };
 
   useEffect(() => {
+    console.log('here');
     reqGetList();
   }, []);
 
