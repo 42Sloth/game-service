@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
 import { getParameterByName } from '../utils/utils';
@@ -12,13 +12,11 @@ const HEIGHT = 480;
 
 const Game = () => {
   const history = useHistory();
-  const socket = io(`ws://${ip}:${port}/game`); // client가 가지고있는 server랑 통신할 수 있는 유일한 통로
-  let username: string | null = '';
-
-  let canvas: HTMLCanvasElement | null = null;
-  let context: CanvasRenderingContext2D | null = null;
-
+  const socket = io(`ws://${ip}:${port}/game`);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
+
+  let username: string | null = '';
 
   const keydown = (e: any) => {
     if (e.keyCode === 38 || e.keyCode === 40) {
@@ -46,6 +44,9 @@ const Game = () => {
   };
 
   const draw = (gameState: IGame) => {
+    if (!canvasRef.current) return;
+    const canvas: HTMLCanvasElement = canvasRef.current;
+    const context = canvas.getContext('2d');
     if (!context) return;
 
     const player_left = gameState.players[0];
@@ -103,7 +104,6 @@ const Game = () => {
   };
 
   const drawGame = (gameState: IGame) => {
-    if (!context) return;
     if (gameState.players[0].username === username) setReady(gameState.players[0].ready);
     else if (gameState.players[1] && gameState.players[1].username === username) setReady(gameState.players[1].ready);
     draw(gameState);
@@ -173,11 +173,6 @@ const Game = () => {
       // TODO: 존재하는 room인지 확인하는 로직 추가
       socket.emit('spectEnter', { roomId: id });
     }
-    canvas = document.querySelector('canvas');
-    if (!canvas) return;
-    context = canvas.getContext('2d');
-    canvas.width = WIDTH;
-    canvas.height = HEIGHT;
     socket.on('drawGame', drawGame);
     socket.on('endGame', endGame);
   }, []);
@@ -192,7 +187,7 @@ const Game = () => {
           나가기
         </button>
       </div>
-      <canvas></canvas>
+      <canvas ref={canvasRef} width={WIDTH} height={HEIGHT}></canvas>
     </div>
   );
 };

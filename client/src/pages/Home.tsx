@@ -64,7 +64,6 @@ const Home = () => {
   };
 
   useEffect(() => {
-    console.log('here');
     reqGetList();
   }, []);
 
