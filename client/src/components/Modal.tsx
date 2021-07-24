@@ -16,7 +16,6 @@ const Modal = ({ open, close, header }: ModalProps) => {
   const history = useHistory();
   const [userInputs, setUserInputs] = useState<IRoom>({
     username: '',
-    roomName: '',
     type: 'public',
     password: '',
     speed: 'moderate',
@@ -32,13 +31,17 @@ const Modal = ({ open, close, header }: ModalProps) => {
   };
 
   const reqCreateRoom = async (roomInfo: IRoom) => {
+    if (roomInfo.type === 'private' && roomInfo.password === '') {
+      alert('비밀번호를 입력해주세요');
+      return;
+    }
     try {
       // roomId 유효성 검사
       // try {
       //   await checkUserRoom(username);
       roomInfo['mapColor'] = colors[roomInfo['mapColor']];
       const response = await createRoom(roomInfo);
-      history.push(`/game`, {roomId: response.data, mode: 'createEnter', username: roomInfo.username});
+      history.push(`/game`, { roomId: response.data, mode: 'createEnter', username: roomInfo.username });
       // } catch (err) {
       //   if (err.response.status === 400) {
       //     alert('이미 게임에 참여 중입니다');
@@ -62,8 +65,6 @@ const Modal = ({ open, close, header }: ModalProps) => {
           <main>
             <h3>User name</h3>
             <input placeholder="Input User name" name="username" onChange={handleChange} />
-            <h3>Room name</h3>
-            <input placeholder="Input Room name" name="roomName" onChange={handleChange} />
             <h3>Access specifier</h3>
             <input
               type="radio"
