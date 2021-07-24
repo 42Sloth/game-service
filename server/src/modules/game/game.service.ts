@@ -2,7 +2,9 @@ import { Server } from 'socket.io';
 import { Not, Repository } from 'typeorm';
 import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
 import { GameResult } from '../entity/GameResult.entity';
-import { gameLoop, Game, DIRECTION, Paddle } from './game';
+import { Game, gameUpdate } from './game';
+import { Paddle } from './submodule/paddle';
+import { DIRECTION } from './submodule/enums';
 import { matchQueue, roomToGame, userToRoom } from './game.gateway';
 import { v4 as uuid } from 'uuid';
 import { NotAcceptableException } from '@nestjs/common';
@@ -21,7 +23,7 @@ export class GameService {
   startInterval(server: Server, roomId: string, game: Game) {
     try {
       const interval = setInterval(() => {
-        gameLoop(game);
+        gameUpdate(game);
         if (game.over === true) {
           server.to(roomId).emit('endGame', new GameResult(game));
           this.insertResult(game);
@@ -39,15 +41,11 @@ export class GameService {
 
   updatePaddle(info, game: Game) {
     if (info.type === 'up') {
-      if (info.keyCode === 38)
-        game.players[game.leftOrRight[info.username]].move = DIRECTION.IDLE;
-      if (info.keyCode === 40)
-        game.players[game.leftOrRight[info.username]].move = DIRECTION.IDLE;
+      if (info.keyCode === 38) game.players[game.leftOrRight[info.username]].move = DIRECTION.IDLE;
+      if (info.keyCode === 40) game.players[game.leftOrRight[info.username]].move = DIRECTION.IDLE;
     } else if (info.type === 'down') {
-      if (info.keyCode === 38)
-        game.players[game.leftOrRight[info.username]].move = DIRECTION.UP;
-      if (info.keyCode === 40)
-        game.players[game.leftOrRight[info.username]].move = DIRECTION.DOWN;
+      if (info.keyCode === 38) game.players[game.leftOrRight[info.username]].move = DIRECTION.UP;
+      if (info.keyCode === 40) game.players[game.leftOrRight[info.username]].move = DIRECTION.DOWN;
     }
   }
 
@@ -117,9 +115,7 @@ export class GameService {
         startAt: 'DESC',
       },
     });
-    const res: GameStatResponseDto[] = items.map((item) =>
-      GameStatResponseDto.fromEntity(item),
-    );
+    const res: GameStatResponseDto[] = items.map((item) => GameStatResponseDto.fromEntity(item));
     return res;
   }
 }
