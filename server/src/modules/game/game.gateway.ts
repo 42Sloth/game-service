@@ -1,15 +1,10 @@
-import {
-  ConnectedSocket,
-  MessageBody,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
-} from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { GameService } from './game.service';
 import { Socket, Server } from 'socket.io';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { Game, Paddle } from './game';
+import { Game } from './game';
+import { Paddle } from './submodule/paddle';
 import { BadRequestException } from '@nestjs/common';
 
 export interface IroomToGame {
@@ -87,10 +82,7 @@ export class GameGateway {
 
       // 새로운 방 생성
       if (matchQueue.length == 0) {
-        const roomId: string = this.gameService.createDefaultRoom(
-          username,
-          'public',
-        );
+        const roomId: string = this.gameService.createDefaultRoom(username, 'public');
         const game: Game = roomToGame[roomId];
         client.join(roomId);
         this.gameService.waitingInterval(this.server, roomId, game);
@@ -154,13 +146,10 @@ export class GameGateway {
     const game: Game = roomToGame[roomId];
     // game.players ready 해주는 부분
     if (game.players.length === 1) {
-      if (game.players[0].username === username)
-        game.players[0].ready = !game.players[0].ready;
+      if (game.players[0].username === username) game.players[0].ready = !game.players[0].ready;
     } else if (game.players.length === 2) {
-      if (game.players[0].username === username)
-        game.players[0].ready = !game.players[0].ready;
-      else if (game.players[1].username === username)
-        game.players[1].ready = !game.players[1].ready;
+      if (game.players[0].username === username) game.players[0].ready = !game.players[0].ready;
+      else if (game.players[1].username === username) game.players[1].ready = !game.players[1].ready;
     }
 
     // 두명 다 ready 이면 시작 해주는 부분
@@ -183,10 +172,6 @@ export class GameGateway {
 
   @SubscribeMessage('key-action')
   playerKeyPressed(@ConnectedSocket() client: Socket, @MessageBody() body) {
-    if (userToRoom[body.username])
-      this.gameService.updatePaddle(
-        body,
-        roomToGame[userToRoom[body.username]],
-      );
+    if (userToRoom[body.username]) this.gameService.updatePaddle(body, roomToGame[userToRoom[body.username]]);
   }
 }

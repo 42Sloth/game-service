@@ -27,7 +27,6 @@ interface ISide {
 export interface IGame {
   players: IPaddle[];
   ball: IBall;
-  running: boolean;
   over: boolean;
   turn: IPaddle;
   timer: number;
@@ -77,4 +76,10 @@ export interface IRoom {
   speed: string;
   ball: string;
   mapColor: string;
+}
+
+export interface ILocation {
+  roomId: string;
+  mode: string;
+  username: string | null;
 }
