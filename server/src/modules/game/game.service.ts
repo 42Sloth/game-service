@@ -1,15 +1,35 @@
 import { Server } from 'socket.io';
 import { Not, Repository } from 'typeorm';
-import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
-import { GameResult } from '../entity/GameResult.entity';
+import { GetGameResultDto } from '../dtos/get-game-result.dto';
+import { GameResult } from '../entity/game-result.entity';
 import { Game, gameUpdate } from './game';
 import { Paddle } from './submodule/paddle';
 import { DIRECTION } from './submodule/enums';
-import { matchQueue, roomToGame, userToRoom } from './game.gateway';
+import { gameData } from './submodule/game-data';
 import { v4 as uuid } from 'uuid';
-import { NotAcceptableException } from '@nestjs/common';
+import { HttpStatus, NotAcceptableException } from '@nestjs/common';
+import { GetGameListDto } from '../dtos/get-game-list.dto';
 
 export class GameService {
+  getAllList() {
+    const list: GetGameListDto[] = [];
+    for (let key of Object.keys(gameData.roomToGame)) {
+      const game: Game = gameData.roomToGame[key];
+      if (game.players.length === 2) {
+        const ele: GetGameListDto = new GetGameListDto(
+          key,
+          game.players[0].username,
+          game.players[1].username,
+          game.type
+        );
+        list.push(ele);
+      } else if (game.players.length === 1) {
+        const ele: GetGameListDto = new GetGameListDto(key, game.players[0].username, 'waiting', game.type);
+        list.push(ele);
+      }
+    }
+    return list;
+  }
   waitingInterval(server: Server, room: string, game: Game) {
     try {
       setInterval(() => {
@@ -27,9 +47,9 @@ export class GameService {
         if (game.over === true) {
           server.to(roomId).emit('endGame', new GameResult(game));
           this.insertResult(game);
-          delete userToRoom[game.players[0].username];
-          delete userToRoom[game.players[1].username];
-          delete roomToGame[roomId];
+          delete gameData.userToRoom[game.players[0].username];
+          delete gameData.userToRoom[game.players[1].username];
+          delete gameData.roomToGame[roomId];
           clearInterval(interval);
         }
         server.to(roomId).emit('drawGame', game);
@@ -49,34 +69,50 @@ export class GameService {
     }
   }
 
-  createDefaultRoom(username: string, access: string): string {
+  createDefaultGame(username: string, access: string): string {
     if (!username) throw NotAcceptableException;
     const roomId: string = uuid();
     const game: Game = new Game();
     const paddle: Paddle = new Paddle('left', username);
     game.players.push(paddle);
-    if (access === 'public') matchQueue.push(paddle);
-    roomToGame[roomId] = game;
-    userToRoom[username] = roomId;
+    if (access === 'public') gameData.matchQueue.push(paddle);
+    gameData.roomToGame[roomId] = game;
+    gameData.userToRoom[username] = roomId;
     game.leftOrRight[username] = 0;
     return roomId;
   }
 
-  createCustomRoom(data): string {
-    const roomId: string = this.createDefaultRoom(data.username, data.type);
-    const game: Game = roomToGame[roomId];
+  createCustomGame(data): string {
+    const roomId: string = this.createDefaultGame(data.username, data.type);
+    const game: Game = gameData.roomToGame[roomId];
     game.ball.setSpeedByType(data.speed);
     game.ball.setSizeByType(data.ball);
-    game.color = data.mapColor;
-    // TODO:  roomName, ball 처리 해야함
+    const colors: string[] = ['#b71540', '#ffda79', '#0a3d62', '#78e08f'];
+    if (!colors.includes(data.mapColor)) game.color = '#000000';
+    else game.color = data.mapColor;
     if (data.type === 'private') game.setPrivate(data.password);
-    else matchQueue.push(game.players[0]);
+    else gameData.matchQueue.push(game.players[0]);
     return roomId;
   }
 
   insertResult(game: Game) {
     const gameResult: GameResult = new GameResult(game);
     gameResult.save();
+  }
+
+  checkUserAlreadyInGame(username: string): number {
+    if (gameData.userToRoom[username]) return HttpStatus.OK;
+    return HttpStatus.NOT_ACCEPTABLE;
+  }
+
+  checkGameValidate(data): number {
+    if (!data.roomId || !gameData.roomToGame[data.roomId]) return HttpStatus.BAD_REQUEST;
+    const game: Game = gameData.roomToGame[data.roomId];
+    if (game.type === 'private') {
+      if (!data.password || data.password !== game.password) return HttpStatus.BAD_REQUEST;
+    }
+    if (data.mode !== 'spectEnter' && game.players.length == 2) return HttpStatus.CONFLICT;
+    return HttpStatus.OK;
   }
 
   async countByUsername(username: string, type: number): Promise<number> {
@@ -107,7 +143,7 @@ export class GameService {
     return count;
   }
 
-  async findByUsername(username: string): Promise<GameStatResponseDto[]> {
+  async findByUsername(username: string): Promise<GetGameResultDto[]> {
     const gameRepository: Repository<GameResult> = GameResult.getRepository();
     const items: GameResult[] = await gameRepository.find({
       where: [{ playerLeft: username }, { playerRight: username }],
@@ -115,7 +151,7 @@ export class GameService {
         startAt: 'DESC',
       },
     });
-    const res: GameStatResponseDto[] = items.map((item) => GameStatResponseDto.fromEntity(item));
+    const res: GetGameResultDto[] = items.map((item) => GetGameResultDto.fromEntity(item));
     return res;
   }
 }

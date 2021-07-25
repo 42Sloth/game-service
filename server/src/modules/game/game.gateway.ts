@@ -6,18 +6,7 @@ import * as path from 'path';
 import { Game } from './game';
 import { Paddle } from './submodule/paddle';
 import { BadRequestException } from '@nestjs/common';
-
-export interface IroomToGame {
-  [roomId: string]: Game;
-}
-
-interface IuserToRoom {
-  [username: string]: string;
-}
-
-export const userToRoom: IuserToRoom = {};
-export const roomToGame: IroomToGame = {};
-export let matchQueue: Paddle[] = [];
+import { gameData } from './submodule/game-data';
 
 dotenv.config({ path: path.join(__dirname, '../../../.env') });
 @WebSocketGateway(+process.env.PORT, { namespace: 'game' })
@@ -29,8 +18,8 @@ export class GameGateway {
   @SubscribeMessage('exitGame')
   exitGame(@ConnectedSocket() client: Socket, @MessageBody() body) {
     const username: string = body.username;
-    const roomId: string = userToRoom[username];
-    const game: Game = roomToGame[roomId];
+    const roomId: string = gameData.userToRoom[username];
+    const game: Game = gameData.roomToGame[roomId];
 
     if (!game) return;
     // 방장이 나갔으면
@@ -40,29 +29,28 @@ export class GameGateway {
         const guestName: string = game.players[1].username;
         game.players.shift();
         game.players.shift();
-        userToRoom[username] = null;
-        delete userToRoom[username];
+        gameData.userToRoom[username] = null;
+        delete gameData.userToRoom[username];
         game.players.push(new Paddle('left', guestName));
         game.leftOrRight[guestName] = 0;
-        if (game.type === 'public') matchQueue.push(game.players[0]);
+        if (game.type === 'public') gameData.matchQueue.push(game.players[0]);
       }
       // 한명이 있는데 나갔으면 방터트려
       else if (game.players.length === 1) {
-        roomToGame[roomId] = null;
-        userToRoom[username] = null;
-        delete roomToGame[roomId];
-        delete userToRoom[username];
-        matchQueue = matchQueue.filter((ele) => ele.username !== username);
+        gameData.roomToGame[roomId] = null;
+        gameData.userToRoom[username] = null;
+        delete gameData.roomToGame[roomId];
+        delete gameData.userToRoom[username];
+        gameData.matchQueue = gameData.matchQueue.filter((ele) => ele.username !== username);
       }
     }
     // 클라이언트가 나갔으면
     if (game.players.length == 2 && game.players[1].username === username) {
       game.players.pop();
-      userToRoom[username] = null;
-      delete userToRoom[username];
-      if (game.type === 'public') matchQueue.push(game.players[0]);
+      gameData.userToRoom[username] = null;
+      delete gameData.userToRoom[username];
+      if (game.type === 'public') gameData.matchQueue.push(game.players[0]);
     }
-    // client.leave(roomId);
   }
 
   @SubscribeMessage('fastEnter')
@@ -71,9 +59,9 @@ export class GameGateway {
       const username: string = body.username;
       if (!username) throw BadRequestException;
       // 사용자가 자기가 진행하고 있던 게임 방에 접속했을 때
-      if (userToRoom[username]) {
-        const roomId: string = userToRoom[username];
-        const game: Game = roomToGame[roomId];
+      if (gameData.userToRoom[username]) {
+        const roomId: string = gameData.userToRoom[username];
+        const game: Game = gameData.roomToGame[roomId];
         client.join(roomId);
         if (game.isStarted) this.server.to(roomId).emit('permitToCtrl');
         else this.gameService.waitingInterval(this.server, roomId, game);
@@ -81,22 +69,22 @@ export class GameGateway {
       }
 
       // 새로운 방 생성
-      if (matchQueue.length == 0) {
-        const roomId: string = this.gameService.createDefaultRoom(username, 'public');
-        const game: Game = roomToGame[roomId];
+      if (gameData.matchQueue.length == 0) {
+        const roomId: string = this.gameService.createDefaultGame(username, 'public');
+        const game: Game = gameData.roomToGame[roomId];
         client.join(roomId);
         this.gameService.waitingInterval(this.server, roomId, game);
       }
       // 게스트 들어왔을 때
-      else if (matchQueue.length >= 1) {
-        const roomOwner: Paddle = matchQueue.shift();
-        const roomId: string = userToRoom[roomOwner.username];
-        const game: Game = roomToGame[roomId];
+      else if (gameData.matchQueue.length >= 1) {
+        const roomOwner: Paddle = gameData.matchQueue.shift();
+        const roomId: string = gameData.userToRoom[roomOwner.username];
+        const game: Game = gameData.roomToGame[roomId];
         const roomGuest: Paddle = new Paddle('right', username);
         game.turn = roomGuest;
         game.players.push(roomGuest);
-        // const roomGuest = matchQueue.shift();
-        userToRoom[roomGuest.username] = roomId;
+        // const roomGuest = gameData.matchQueue.shift();
+        gameData.userToRoom[roomGuest.username] = roomId;
         game.players[1].username = roomGuest.username;
         game.leftOrRight[roomGuest.username] = 1;
         client.join(roomId);
@@ -110,29 +98,23 @@ export class GameGateway {
   @SubscribeMessage('selectEnter')
   selectEnter(@ConnectedSocket() client: Socket, @MessageBody() body) {
     // roomID가 없거나 username이 없거나 유효하지 않은 roomID인 경우
-    if (!body.roomId || !body.username || !roomToGame[body.roomId]) {
+    if (!body.roomId || !body.username || !gameData.roomToGame[body.roomId]) {
       throw BadRequestException;
     }
-    const game: Game = roomToGame[body.roomId];
-    if (userToRoom[body.username]) {
-      const roomId: string = userToRoom[body.username];
-      // if (roomId !== body.roomId) {
-
-      // }
-      const game: Game = roomToGame[roomId];
+    const game: Game = gameData.roomToGame[body.roomId];
+    if (gameData.userToRoom[body.username]) {
+      const roomId: string = gameData.userToRoom[body.username];
+      const game: Game = gameData.roomToGame[roomId];
       client.join(roomId);
       if (game.isStarted) this.server.to(roomId).emit('permitToCtrl');
       else this.gameService.waitingInterval(this.server, roomId, game);
       return;
     }
-    //TODO: 비번 걸려있으면 해제하는 로직 작성해야 함.
-    // if (game.access === false && game.password !== body.password)
-    //   throw BadRequestException;
-    if (game.type === 'public') matchQueue.shift();
+    if (game.type === 'public') gameData.matchQueue.shift();
     const roomGuest: Paddle = new Paddle('right', body.username);
     game.turn = roomGuest;
     game.players.push(roomGuest);
-    userToRoom[roomGuest.username] = body.roomId;
+    gameData.userToRoom[roomGuest.username] = body.roomId;
     game.players[1].username = roomGuest.username;
     game.leftOrRight[roomGuest.username] = 1;
     client.join(body.roomId);
@@ -142,8 +124,8 @@ export class GameGateway {
   @SubscribeMessage('ready')
   playerReady(@ConnectedSocket() client: Socket, @MessageBody() body) {
     const username: string = body.username;
-    const roomId: string = userToRoom[username];
-    const game: Game = roomToGame[roomId];
+    const roomId: string = gameData.userToRoom[username];
+    const game: Game = gameData.roomToGame[roomId];
     // game.players ready 해주는 부분
     if (game.players.length === 1) {
       if (game.players[0].username === username) game.players[0].ready = !game.players[0].ready;
@@ -166,12 +148,13 @@ export class GameGateway {
   // body : { roomId : '131242fwef' }
   @SubscribeMessage('spectEnter')
   playerJoin(@ConnectedSocket() client: Socket, @MessageBody() body) {
-    const game: Game = roomToGame[body.roomId];
+    const game: Game = gameData.roomToGame[body.roomId];
     client.join(body.roomId);
   }
 
   @SubscribeMessage('key-action')
   playerKeyPressed(@ConnectedSocket() client: Socket, @MessageBody() body) {
-    if (userToRoom[body.username]) this.gameService.updatePaddle(body, roomToGame[userToRoom[body.username]]);
+    if (gameData.userToRoom[body.username])
+      this.gameService.updatePaddle(body, gameData.roomToGame[gameData.userToRoom[body.username]]);
   }
 }

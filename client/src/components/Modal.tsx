@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { createRoom, checkUserRoom } from '../api/api';
+import { createRoom, checkUserAlreadyInRoom } from '../api/api';
 import { IRoom } from '../interface/interface';
 import '../styles/Modal.css';
 
@@ -38,12 +38,12 @@ const Modal = ({ open, close, header }: ModalProps) => {
     try {
       // roomId 유효성 검사
       // try {
-      //   await checkUserRoom(username);
+      //   await checkUserAlreadyInRoom(username);
       roomInfo['mapColor'] = colors[roomInfo['mapColor']];
       const response = await createRoom(roomInfo);
       history.push(`/game`, { roomId: response.data, mode: 'createEnter', username: roomInfo.username });
       // } catch (err) {
-      //   if (err.response.status === 400) {
+      //   if (err.response.status === 406) {
       //     alert('이미 게임에 참여 중입니다');
       //   }
       // }

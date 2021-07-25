@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GameModule } from './modules/game/game.module';
-import { GameResult } from './modules/entity/GameResult.entity';
+import { GameResult } from './modules/entity/game-result.entity';
 
 @Module({
-  imports: [GameModule, TypeOrmModule.forRootAsync({
+  imports: [
+    GameModule,
+    TypeOrmModule.forRootAsync({
       useFactory: async () => ({
         type: 'postgres',
         host: process.env.POSTGRES_IP,
@@ -15,9 +17,10 @@ import { GameResult } from './modules/entity/GameResult.entity';
         autoLoadEntities: true,
         entities: [GameResult],
         synchronize: true,
-        logging:true
+        logging: true,
       }),
-    })],
+    }),
+  ],
   // providers: [ChatGateway, PongGateway],
   // providers: [PongGateway, PongService],
 })

@@ -1,17 +1,11 @@
-import {
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, Post, Res } from '@nestjs/common';
 import { MessageBody } from '@nestjs/websockets';
-import { GameListResponseDto } from '../dtos/GameListResponseDto';
-import { GameStatResponseDto } from '../dtos/GameStatResponseDto';
-import { Game } from './game';
-import { roomToGame, userToRoom } from './game.gateway';
+import { GetGameListDto } from '../dtos/get-game-list.dto';
+import { GetGameResultDto } from '../dtos/get-game-result.dto';
 import { GameService } from './game.service';
+import { Response } from 'express';
+import { CreateGameDto } from '../dtos/create-game.dto';
+import { CheckGameDto } from '../dtos/check-game.dto';
 
 @Controller('game')
 export class GameController {
@@ -19,72 +13,30 @@ export class GameController {
 
   // FE측은 POST로 여기로 날려주고, socket-> 'enter'로 접속해주어야 함.
   @Post('/new')
-  createCustomRoom(@MessageBody() body): string {
-    return this.gameService.createCustomRoom(body);
+  createCustomGame(@Res() response: Response, @MessageBody() body: CreateGameDto) {
+    response.status(HttpStatus.OK);
+    response.send(this.gameService.createCustomGame(body));
   }
 
-  @Post('checkRoomValidate')
-  checkRoomEnterValidate(@MessageBody() body) {
-    if (!body.roomId || !roomToGame[body.roomId])
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: 'roomId가 잘못 되었습니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    const game: Game = roomToGame[body.roomId];
-    if (game.type === 'private') {
-      if (!body.password || body.password !== game.password)
-        throw new HttpException(
-          {
-            status: HttpStatus.BAD_REQUEST,
-            error: '잘못된 패스워드 혹은 roomID 입니다.',
-          },
-          HttpStatus.BAD_REQUEST,
-        );
-    }
-    if (body.mode !== 'spectEnter' && game.players.length == 2)
-      throw new HttpException(
-        {
-          status: HttpStatus.CONFLICT,
-          error: '방이 꽉 찼습니다.',
-        },
-        HttpStatus.CONFLICT,
-      );
-    throw new HttpException(
-      {
-        status: HttpStatus.OK,
-        error: '입장 가능하십니다.',
-      },
-      HttpStatus.OK,
-    );
+  // TODO
+  @Post('/valid')
+  checkGameValidate(@Res() response: Response, @MessageBody() body: CheckGameDto) {
+    const result: number = this.gameService.checkGameValidate(body);
+    response.status(result).send();
+  }
+
+  // TODO
+  // 유저가 방을 만들거나 게임에 참여하려할 때, 이미 참여하고 있는 게임이 있는지 확인
+  @Get('/valid/user/:username')
+  checkUserAlreadyInGame(@Res() response: Response, @Param('username') username: string) {
+    const result: number = this.gameService.checkUserAlreadyInGame(username);
+    response.status(result).send();
   }
 
   @Get('/list')
-  getAllList(): GameListResponseDto[] {
-    const list: GameListResponseDto[] = [];
-    for (let key of Object.keys(roomToGame)) {
-      const game: Game = roomToGame[key];
-      if (game.players.length === 2) {
-        const ele: GameListResponseDto = new GameListResponseDto(
-          key,
-          game.players[0].username,
-          game.players[1].username,
-          game.type,
-        );
-        list.push(ele);
-      } else if (game.players.length === 1) {
-        const ele: GameListResponseDto = new GameListResponseDto(
-          key,
-          game.players[0].username,
-          'waiting',
-          game.type,
-        );
-        list.push(ele);
-      }
-    }
-    return list;
+  getAllList(@Res() response: Response) {
+    const list: GetGameListDto[] = this.gameService.getAllList();
+    response.status(HttpStatus.OK).send(list);
   }
 
   @Get('/result/:username/count/win')
@@ -103,28 +55,7 @@ export class GameController {
   }
 
   @Get('/result/:username/all')
-  getAll(@Param('username') username: string): Promise<GameStatResponseDto[]> {
+  getAll(@Param('username') username: string): Promise<GetGameResultDto[]> {
     return this.gameService.findByUsername(username);
-  }
-
-  // 유저가 방을 만들거나 게임에 참여하려할 때, 이미 참여하고 있는 게임이 있는지 확인
-  @Get('room/:username')
-  getUserRoom(@Param('username') username: string) {
-    if (userToRoom[username]) {
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: '이미 게임에 참여 중입니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-    throw new HttpException(
-      {
-        status: HttpStatus.OK,
-        error: '입장 가능하십니다.',
-      },
-      HttpStatus.OK,
-    );
   }
 }

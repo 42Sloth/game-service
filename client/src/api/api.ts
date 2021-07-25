@@ -17,8 +17,8 @@ export const createRoom = async (roomInfo: IRoom) => {
   return await instance.post(`/game/new`, roomInfo);
 };
 
-export const enterPrivateRoom = async (data: { roomId: string; password: string; mode: string }) => {
-  return await instance.post(`/game/checkRoomValidate`, data);
+export const checkGameValidate = async (data: { roomId: string; password: string; mode: string }) => {
+  return await instance.post(`/game/valid`, data);
 };
 
 export const getAllStats = async (username: string) => {
@@ -37,6 +37,6 @@ export const getAllGames = async (username: string) => {
   return await instance.get(`game/result/${username}/all`);
 };
 
-export const checkUserRoom = async (username: string) => {
-  return await instance.get(`game/room/${username}`);
+export const checkUserAlreadyInRoom = async (username: string) => {
+  return await instance.get(`game/valid/user/${username}`);
 };
