@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import Modal from '../components/Modal';
-import { getList, enterPrivateRoom, checkUserRoom } from '../api/api';
+import { getList, checkGameValidate, checkUserAlreadyInRoom } from '../api/api';
 import { IGameList } from '../interface/interface';
 
 const Home = () => {
@@ -22,7 +22,7 @@ const Home = () => {
   const handleClick = async (e: any) => {
     const roomId = e.target.id;
     const mode = e.target.value;
-    if (roomId === '0') history.push(`/game`, {roomId: roomId, mode: mode});
+    if (roomId === '0') history.push(`/game`, { roomId: roomId, mode: mode });
     else {
       if (gameList[e.target.name].type === 'private') {
         password = window.prompt('4자리 비밀번호를 입력해주세요');
@@ -33,14 +33,14 @@ const Home = () => {
         if (mode === 'selectEnter') {
           // roomId 유효성 검사
           // try {
-          //   await checkUserRoom(username);
-          history.push(`/game`, {roomId: roomId, mode: mode});
+          //   await checkUserAlreadyInRoom(username);
+          history.push(`/game`, { roomId: roomId, mode: mode });
           // } catch (err) {
-          //   if (err.response.status === 400) {
+          //   if (err.response.status === 406) {
           //     alert('이미 게임에 참여 중입니다');
           //   }
           // }
-        } else if (mode === 'spectEnter') history.push(`/game`, {roomId: roomId, mode: mode});
+        } else if (mode === 'spectEnter') history.push(`/game`, { roomId: roomId, mode: mode });
       }
     }
   };
@@ -59,9 +59,9 @@ const Home = () => {
 
   const reqEnter = async (roomId: string, password: string, mode: string) => {
     try {
-      await enterPrivateRoom({ roomId: roomId, password: password, mode: mode });
-      if (mode === 'selectEnter') history.push(`/game`, {roomId: roomId, mode: mode});
-      else if (mode === 'spectEnter') history.push(`/game`, {roomId: roomId, mode: mode});
+      await checkGameValidate({ roomId: roomId, password: password, mode: mode });
+      if (mode === 'selectEnter') history.push(`/game`, { roomId: roomId, mode: mode });
+      else if (mode === 'spectEnter') history.push(`/game`, { roomId: roomId, mode: mode });
     } catch (err) {
       if (err.response.status === 400) {
         alert('비밀번호가 틀렸습니다!');
