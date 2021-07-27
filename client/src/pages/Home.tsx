@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import Modal from '../components/Modal';
-import { getList, checkGameValidate, checkUserAlreadyInRoom } from '../api/api';
+import { getList, checkGameValidate, checkUserAlreadyInRoom, getProfile } from '../api/api';
 import { IGameList } from '../interface/interface';
 
 const Home = () => {
@@ -14,6 +14,15 @@ const Home = () => {
     try {
       const response = await getList();
       setGameList(response.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const reqGetUserInfo = async () => {
+    try {
+      const response = await getProfile();
+      console.log('getProfile', response.data);
     } catch (err) {
       console.log(err);
     }
@@ -73,10 +82,19 @@ const Home = () => {
 
   useEffect(() => {
     reqGetList();
+    reqGetUserInfo();
   }, []);
 
   return (
     <div>
+      <button
+        onClick={() => {
+          window.location.href = 'http://localhost:8000/42';
+        }}
+      >
+        로그인
+      </button>
+      <button onClick={reqGetUserInfo}>get username</button>
       <h1>게임 접속</h1>
       <button id="0" onClick={handleClick} value="fastEnter">
         빠른 시작

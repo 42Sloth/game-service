@@ -52,6 +52,12 @@ const Stats = () => {
 
   const handleChange = (e: any) => {
     setUsername(e.target.value);
+    setUserStats({
+      all: 0,
+      win: 0,
+      lose: 0,
+    });
+    setUserGameHistory([]);
   };
 
   const handleKeyPress = (e: any) => {
@@ -78,6 +84,7 @@ const Stats = () => {
         <div>{userStats.win}승</div>
         <div>{userStats.lose}패</div>
       </div>
+<<<<<<< Updated upstream
       {userGameHistory.map((game) => {
         const { id, playerLeft, playerRight, winner, playerLeftScore, playerRightScore, playTime } = game;
         return (
@@ -91,6 +98,9 @@ const Stats = () => {
           </div>
         );
       })}
+=======
+      <CollapsibleTable userGameHistory={userGameHistory} />
+>>>>>>> Stashed changes
     </div>
   );
 };

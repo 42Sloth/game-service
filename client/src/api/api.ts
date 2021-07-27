@@ -40,3 +40,7 @@ export const getAllGames = async (username: string) => {
 export const checkUserAlreadyInRoom = async (username: string) => {
   return await instance.get(`game/valid/user/${username}`);
 };
+
+export const getProfile = async () => {
+  return await instance.get(`/profile`);
+};
