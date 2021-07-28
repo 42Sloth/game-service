@@ -3,11 +3,15 @@ import { useHistory } from 'react-router-dom';
 import Modal from '../components/Modal';
 import { getList, checkGameValidate, checkUserAlreadyInRoom, getProfile } from '../api/api';
 import { IGameList } from '../interface/interface';
+import Stats from '../components/Stats';
+import GameList from '../components/GameList';
 
 const Home = () => {
   const history = useHistory();
   const [gameList, setGameList] = useState<Array<IGameList>>([]);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(0);
+
   let password: string | null = null;
 
   const reqGetList = async () => {
@@ -54,10 +58,6 @@ const Home = () => {
     }
   };
 
-  const handleClickStats = () => {
-    history.push('/stats');
-  };
-
   const handleMakeRoom = () => {
     setModalOpen(true);
   };
@@ -86,46 +86,20 @@ const Home = () => {
   }, []);
 
   return (
-    <div>
-      <button
-        onClick={() => {
-          window.location.href = 'http://localhost:8000/42';
-        }}
-      >
-        로그인
-      </button>
-      <button onClick={reqGetUserInfo}>get username</button>
-      <h1>게임 접속</h1>
+    <div style={{ textAlign: 'center' }}>
+      <h2>게임 접속</h2>
       <button id="0" onClick={handleClick} value="fastEnter">
-        빠른 시작
+        Quick Start
       </button>
-      <button onClick={handleMakeRoom}>방 만들기</button>
+      <button onClick={handleMakeRoom}>Create Room</button>
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+          <h2 onClick={() => setPage(0)}>List</h2>
+          <h2 onClick={() => setPage(1)}>Stats</h2>
+        </div>
+        {page === 0 ? <GameList gameList={gameList} /> : <Stats />}
+      </div>
       {modalOpen && <Modal open={modalOpen} close={closeModal} header="Create Room"></Modal>}
-      <h1>게임 리스트</h1>
-      {gameList.map((game, idx: number) => {
-        return (
-          <div key={game.roomId} style={{ display: 'flex' }}>
-            {game.type === 'private' && <div>🔐</div>}
-            <div style={{ margin: '3px' }}>{game.leftPlayer}</div>
-            <div style={{ margin: '3px' }}>vs</div>
-            <div style={{ margin: '3px' }}>{game.rightPlayer === 'waiting' ? '???' : game.rightPlayer}</div>
-            <button
-              id={game.roomId}
-              name={idx.toString()}
-              onClick={handleClick}
-              value="selectEnter"
-              disabled={game.rightPlayer !== 'waiting'}
-            >
-              플레이어로 입장
-            </button>
-            <button id={game.roomId} name={idx.toString()} onClick={handleClick} value="spectEnter">
-              관전자로 입장
-            </button>
-          </div>
-        );
-      })}
-      <h1>게임 전적</h1>
-      <button onClick={handleClickStats}>show stats</button>
     </div>
   );
 };
