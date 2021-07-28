@@ -2,8 +2,8 @@ import { useState } from 'react';
 import '../styles/Stats.css';
 import { getAllStats, getWinStats, getLoseStats, getAllGames } from '../api/api';
 import { IGameStat } from '../interface/interface';
-import CollapsibleTable from '../components/CollapsibleTable';
-import Inputs from '../components/Inputs';
+import CollapsibleTable from './CollapsibleTable';
+import Inputs from './Inputs';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import SearchIcon from '@material-ui/icons/Search';
 import { Button } from '@material-ui/core';
@@ -78,7 +78,6 @@ const Stats = () => {
 
   return (
     <div style={{ width: '50vw', margin: 'auto', minWidth: '512px' }}>
-      <h2 onClick={() => window.location.reload()}>Stats</h2>
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         <Inputs value={username} onChange={handleChange} onKeyPress={handleKeyPress} />
         <Button
@@ -99,7 +98,6 @@ const Stats = () => {
           <div>{userStats.lose}패</div>
         </div>
       )}
-
       {username && <CollapsibleTable userGameHistory={userGameHistory} />}
     </div>
   );
