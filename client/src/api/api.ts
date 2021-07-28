@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IRoom } from '../interface/interface';
+import { IRoom } from '../interface/gameInterface';
 
 const ip = process.env.REACT_APP_GAME_SERVER_IP;
 const port = process.env.REACT_APP_GAME_SERVER_PORT;
@@ -44,4 +44,8 @@ export const checkUserAlreadyInRoom = async (username: string) => {
 
 export const getProfile = async () => {
   return await instance.get(`/profile`);
+};
+
+export const logout = async () => {
+  return await instance.get(`/42/logout`);
 };

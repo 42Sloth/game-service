@@ -1,4 +1,4 @@
-import { IGameList } from '../interface/interface';
+import { IGameList } from '../interface/gameInterface';
 import { useHistory } from 'react-router-dom';
 import { checkGameValidate } from '../api/api';
 import SimpleCard from './Simplecard';
@@ -50,9 +50,13 @@ const GameList = (props: { gameList: IGameList[] }) => {
 
   return (
     <div style={{ width: '50vw', margin: 'auto', minWidth: '512px' }}>
-      {props.gameList.map((game, idx: number) => {
-        return <SimpleCard game={game} idx={idx} handleClick={handleClick} />;
-      })}
+      {props.gameList.length === 0 ? (
+        <div style={{ color: 'grey' }}>No Game</div>
+      ) : (
+        props.gameList.map((game, idx: number) => {
+          return <SimpleCard game={game} idx={idx} handleClick={handleClick} />;
+        })
+      )}
     </div>
   );
 };

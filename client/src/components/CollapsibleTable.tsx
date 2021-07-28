@@ -13,7 +13,7 @@ import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
-import { IGameStat } from '../interface/interface';
+import { IGameStat } from '../interface/gameInterface';
 
 const useRowStyles = makeStyles({
   root: {

@@ -1,16 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import Modal from '../components/Modal';
-import { getList, checkGameValidate, checkUserAlreadyInRoom, getProfile } from '../api/api';
-import { IGameList } from '../interface/interface';
+import { getList, checkGameValidate, checkUserAlreadyInRoom, getProfile, logout } from '../api/api';
+import { IGameList } from '../interface/gameInterface';
+import { IUser } from '../interface/userInterface';
 import Stats from '../components/Stats';
 import GameList from '../components/GameList';
+import '../styles/Home.css';
 
 const Home = () => {
   const history = useHistory();
   const [gameList, setGameList] = useState<Array<IGameList>>([]);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [page, setPage] = useState<number>(0);
+  const [userInfo, setUserinfo] = useState<IUser>({
+    id: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+    picture: '',
+  });
 
   let password: string | null = null;
 
@@ -27,8 +36,16 @@ const Home = () => {
     try {
       const response = await getProfile();
       console.log('getProfile', response.data);
+      const data = response.data;
+      setUserinfo({
+        id: data.id,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        picture: data.picture,
+      });
     } catch (err) {
-      console.log(err);
+      // console.log(err);
     }
   };
 
@@ -80,6 +97,25 @@ const Home = () => {
     }
   };
 
+  const handleLogin = () => {
+    window.location.href = 'http://localhost:8000/42';
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setUserinfo({
+        id: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        picture: '',
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
     reqGetList();
     reqGetUserInfo();
@@ -87,8 +123,24 @@ const Home = () => {
 
   return (
     <div style={{ textAlign: 'center' }}>
-      <button onClick={() => (window.location.href = 'http://localhost:8000/42')}>로그인</button>
-      <button onClick={reqGetUserInfo}>Get profile</button>
+      {userInfo.id ? (
+        <div style={{ display: 'flex' }}>
+          <div id="profile-wrapper">
+            <img id="profile" src={userInfo.picture} alt="profile"></img>
+          </div>
+          <div
+            style={{ height: '50px', lineHeight: '50px' }}
+            onClick={() => {
+              history.push('/mypage');
+            }}
+          >
+            {userInfo.id}
+          </div>
+          <button onClick={handleLogout}>로그아웃</button>
+        </div>
+      ) : (
+        <button onClick={handleLogin}>로그인</button>
+      )}
       <h2>게임 접속</h2>
       <button id="0" onClick={handleClick} value="fastEnter">
         Quick Start

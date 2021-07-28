@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import io from 'socket.io-client';
-import { IGame, IGameResult, ILocation } from '../interface/interface';
+import { IGame, IGameResult, ILocation } from '../interface/gameInterface';
 
 const ip = process.env.REACT_APP_GAME_SOCKET_IP;
 const port = process.env.REACT_APP_GAME_SOCKET_PORT;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import '../styles/Stats.css';
 import { getAllStats, getWinStats, getLoseStats, getAllGames } from '../api/api';
-import { IGameStat } from '../interface/interface';
+import { IGameStat } from '../interface/gameInterface';
 import CollapsibleTable from './CollapsibleTable';
 import Inputs from './Inputs';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
