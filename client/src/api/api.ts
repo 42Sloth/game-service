@@ -7,6 +7,7 @@ const apiUrl = `http://${ip}:${port}`;
 
 const instance = axios.create({
   baseURL: apiUrl,
+  withCredentials: true,
 });
 
 export const getList = async () => {

@@ -87,6 +87,8 @@ const Home = () => {
 
   return (
     <div style={{ textAlign: 'center' }}>
+      <button onClick={() => (window.location.href = 'http://localhost:8000/42')}>로그인</button>
+      <button onClick={reqGetUserInfo}>Get profile</button>
       <h2>게임 접속</h2>
       <button id="0" onClick={handleClick} value="fastEnter">
         Quick Start
