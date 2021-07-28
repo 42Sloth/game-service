@@ -66,6 +66,12 @@ const Stats = () => {
 
   const handleChange = (e: any) => {
     setUsername(e.target.value);
+    setUserStats({
+      all: 0,
+      win: 0,
+      lose: 0,
+    });
+    setUserGameHistory([]);
   };
 
   const handleKeyPress = (e: any) => {
