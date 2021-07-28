@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import Game from './pages/Game';
 import Home from './pages/Home';
-import Stats from './pages/Stats';
 
 const App: React.FC = () => {
   return (
@@ -9,7 +8,6 @@ const App: React.FC = () => {
       <Switch>
         <Route path="/" exact component={Home} />
         <Route path="/game" component={Game} />
-        <Route path="/stats" component={Stats} />
       </Switch>
     </BrowserRouter>
   );

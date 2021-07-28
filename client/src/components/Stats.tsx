@@ -2,8 +2,22 @@ import { useState } from 'react';
 import '../styles/Stats.css';
 import { getAllStats, getWinStats, getLoseStats, getAllGames } from '../api/api';
 import { IGameStat } from '../interface/interface';
+import CollapsibleTable from './CollapsibleTable';
+import Inputs from './Inputs';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import SearchIcon from '@material-ui/icons/Search';
+import { Button } from '@material-ui/core';
+
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    button: {
+      margin: theme.spacing(1),
+    },
+  })
+);
 
 const Stats = () => {
+  const classes = useStyles();
   const [username, setUsername] = useState<string>('');
   const [userStats, setUserStats] = useState({
     all: 0,
@@ -56,41 +70,35 @@ const Stats = () => {
 
   const handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       getStatsCount();
       getGameHistory();
     }
   };
 
   return (
-    <div>
-      <div>
-        <input
-          value={username}
-          onChange={handleChange}
-          onKeyPress={handleKeyPress}
-          placeholder="Input username"
-        ></input>
-        <button onClick={handleClick}>검색</button>
+    <div style={{ width: '50vw', margin: 'auto', minWidth: '512px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <Inputs value={username} onChange={handleChange} onKeyPress={handleKeyPress} />
+        <Button
+          variant="outlined"
+          color="default"
+          className={classes.button}
+          startIcon={<SearchIcon />}
+          onClick={handleClick}
+        >
+          검색
+        </Button>
       </div>
-      <div className="wrapper">
-        <div>총 전적: </div>
-        <div>{userStats.all}전</div>
-        <div>{userStats.win}승</div>
-        <div>{userStats.lose}패</div>
-      </div>
-      {userGameHistory.map((game) => {
-        const { id, playerLeft, playerRight, winner, playerLeftScore, playerRightScore, playTime } = game;
-        return (
-          <div key={id} className="wrapper">
-            <div>{playerLeft}/</div>
-            <div>{playerRight}/</div>
-            <div>{playerLeftScore}/</div>
-            <div>{playerRightScore}/</div>
-            <div>{winner}/</div>
-            <div>{playTime}초</div>
-          </div>
-        );
-      })}
+      {username && (
+        <div className="wrapper">
+          <div>총 전적: </div>
+          <div>{userStats.all}전</div>
+          <div>{userStats.win}승</div>
+          <div>{userStats.lose}패</div>
+        </div>
+      )}
+      {username && <CollapsibleTable userGameHistory={userGameHistory} />}
     </div>
   );
 };
