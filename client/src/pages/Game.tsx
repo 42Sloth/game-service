@@ -13,7 +13,7 @@ const Game = () => {
   const location = useLocation<ILocation>();
   const roomId = location.state.roomId;
   const mode = location.state.mode;
-  let username = location.state.username;
+  const username = location.state.username;
   const history = useHistory();
   const socket = io(`ws://${ip}:${port}/game`);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -140,9 +140,9 @@ const Game = () => {
   const init = async () => {
     // 빠른 시작
     if (mode === 'fastEnter') {
-      while (!(username = prompt('닉네임?'))) {
-        alert('닉네임을 입력해주세요!');
-      }
+      // while (!(username = prompt('닉네임?'))) {
+      //   alert('닉네임을 입력해주세요!');
+      // }
       socket.emit('fastEnter', { username: username });
       document.addEventListener('keyup', spaceup);
       socket.on('permitToCtrl', permitToCtrl);
@@ -155,9 +155,9 @@ const Game = () => {
     }
     // 플레이어로 게임 참여
     else if (mode === 'selectEnter') {
-      while (!(username = prompt('닉네임?'))) {
-        alert('닉네임을 입력해주세요!');
-      }
+      // while (!(username = prompt('닉네임?'))) {
+      //   alert('닉네임을 입력해주세요!');
+      // }
       // TODO: 존재하는 room인지 확인하는 로직 추가
       socket.emit('selectEnter', { roomId: roomId, username: username });
       document.addEventListener('keyup', spaceup);

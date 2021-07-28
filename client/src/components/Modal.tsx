@@ -10,12 +10,13 @@ interface ModalProps {
   open: boolean;
   close: () => void;
   header: string;
+  username: string;
 }
 
-const Modal = ({ open, close, header }: ModalProps) => {
+const Modal = ({ open, close, header, username }: ModalProps) => {
   const history = useHistory();
   const [userInputs, setUserInputs] = useState<IRoom>({
-    username: '',
+    // username: '',
     type: 'public',
     password: '',
     speed: 'moderate',
@@ -41,7 +42,7 @@ const Modal = ({ open, close, header }: ModalProps) => {
       //   await checkUserAlreadyInRoom(username);
       roomInfo['mapColor'] = colors[roomInfo['mapColor']];
       const response = await createRoom(roomInfo);
-      history.push(`/game`, { roomId: response.data, mode: 'createEnter', username: roomInfo.username });
+      history.push(`/game`, { roomId: response.data, mode: 'createEnter', username: username });
       // } catch (err) {
       //   if (err.response.status === 406) {
       //     alert('이미 게임에 참여 중입니다');
@@ -63,8 +64,8 @@ const Modal = ({ open, close, header }: ModalProps) => {
             </button>
           </header>
           <main>
-            <h3>User name</h3>
-            <input placeholder="Input User name" name="username" onChange={handleChange} />
+            {/* <h3>User name</h3>
+            <input placeholder="Input User name" name="username" onChange={handleChange} /> */}
             <h3>Access specifier</h3>
             <input
               type="radio"
