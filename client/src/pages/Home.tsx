@@ -21,8 +21,6 @@ const Home = () => {
     picture: '',
   });
 
-  let password: string | null = null;
-
   const reqGetList = async () => {
     try {
       const response = await getList();
@@ -50,29 +48,7 @@ const Home = () => {
   };
 
   const handleClick = async (e: any) => {
-    const roomId = e.target.id;
-    const mode = e.target.value;
-    if (roomId === '0') history.push(`/game`, { roomId: roomId, mode: mode, username: userInfo.id });
-    else {
-      if (gameList[e.target.name].type === 'private') {
-        password = window.prompt('4자리 비밀번호를 입력해주세요');
-        if (password) {
-          reqEnter(roomId, password, mode);
-        }
-      } else {
-        if (mode === 'selectEnter') {
-          // roomId 유효성 검사
-          // try {
-          //   await checkUserAlreadyInRoom(username);
-          history.push(`/game`, { roomId: roomId, mode: mode, username: userInfo.id });
-          // } catch (err) {
-          //   if (err.response.status === 406) {
-          //     alert('이미 게임에 참여 중입니다');
-          //   }
-          // }
-        } else if (mode === 'spectEnter') history.push(`/game`, { roomId: roomId, mode: mode });
-      }
-    }
+    history.push(`/game`, { roomId: e.target.id, mode: e.target.value, username: userInfo.id });
   };
 
   const handleMakeRoom = () => {
@@ -81,20 +57,6 @@ const Home = () => {
 
   const closeModal = () => {
     setModalOpen(false);
-  };
-
-  const reqEnter = async (roomId: string, password: string, mode: string) => {
-    try {
-      await checkGameValidate({ roomId: roomId, password: password, mode: mode });
-      if (mode === 'selectEnter') history.push(`/game`, { roomId: roomId, mode: mode, username: userInfo.id });
-      else if (mode === 'spectEnter') history.push(`/game`, { roomId: roomId, mode: mode });
-    } catch (err) {
-      if (err.response.status === 400) {
-        alert('비밀번호가 틀렸습니다!');
-      } else if (err.response.status === 409) {
-        alert('방이 꽉 찼습니다!');
-      }
-    }
   };
 
   const handleLogin = () => {
@@ -151,7 +113,7 @@ const Home = () => {
           <h2 onClick={() => setPage(0)}>List</h2>
           <h2 onClick={() => setPage(1)}>Stats</h2>
         </div>
-        {page === 0 ? <GameList gameList={gameList} /> : <Stats />}
+        {page === 0 ? <GameList gameList={gameList} username={userInfo.id} /> : <Stats />}
       </div>
       {modalOpen && <Modal open={modalOpen} close={closeModal} header="Create Room" username={userInfo.id}></Modal>}
     </div>

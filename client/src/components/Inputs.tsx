@@ -1,4 +1,3 @@
-import React from 'react';
 import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
 import Input from '@material-ui/core/Input';
 
