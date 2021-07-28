@@ -2,9 +2,6 @@ import { IsEnum, IsString } from 'class-validator';
 import { BallSizeEnum, GameSpeedEnum, GameTypeEnum } from '../game/submodule/enums';
 
 export class CreateGameDto {
-  @IsString()
-  readonly username: string;
-
   @IsEnum(GameTypeEnum)
   readonly type: GameTypeEnum;
 

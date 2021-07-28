@@ -82,8 +82,8 @@ export class GameService {
     return roomId;
   }
 
-  createCustomGame(data): string {
-    const roomId: string = this.createDefaultGame(data.username, data.type);
+  createCustomGame(username: string, data): string {
+    const roomId: string = this.createDefaultGame(username, data.type);
     const game: Game = gameData.roomToGame[roomId];
     game.ball.setSpeedByType(data.speed);
     game.ball.setSizeByType(data.ball);
