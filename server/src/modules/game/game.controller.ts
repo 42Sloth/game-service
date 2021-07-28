@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus, Param, Post, Res } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { MessageBody } from '@nestjs/websockets';
 import { GetGameListDto } from '../dtos/get-game-list.dto';
 import { GetGameResultDto } from '../dtos/get-game-result.dto';
@@ -6,16 +6,18 @@ import { GameService } from './game.service';
 import { Response } from 'express';
 import { CreateGameDto } from '../dtos/create-game.dto';
 import { CheckGameDto } from '../dtos/check-game.dto';
+import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
+@UseGuards(AuthenticatedGuard)
 @Controller('game')
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
   // FE측은 POST로 여기로 날려주고, socket-> 'enter'로 접속해주어야 함.
   @Post('/new')
-  createCustomGame(@Res() response: Response, @MessageBody() body: CreateGameDto) {
+  createCustomGame(@Req() req, @Res() response: Response, @MessageBody() body: CreateGameDto) {
     response.status(HttpStatus.OK);
-    response.send(this.gameService.createCustomGame(body));
+    response.send(this.gameService.createCustomGame(req.user.id, body));
   }
 
   // TODO
@@ -27,9 +29,9 @@ export class GameController {
 
   // TODO
   // 유저가 방을 만들거나 게임에 참여하려할 때, 이미 참여하고 있는 게임이 있는지 확인
-  @Get('/valid/user/:username')
-  checkUserAlreadyInGame(@Res() response: Response, @Param('username') username: string) {
-    const result: number = this.gameService.checkUserAlreadyInGame(username);
+  @Get('/valid/user/')
+  checkUserAlreadyInGame(@Res() response: Response, @Req() req) {
+    const result: number = this.gameService.checkUserAlreadyInGame(req.user.id);
     response.status(result).send();
   }
 
