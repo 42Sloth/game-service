@@ -69,7 +69,7 @@ export interface IGameStat {
 }
 
 export interface IRoom {
-  username: string;
+  // username: string;
   type: string;
   password: string;
   speed: string;

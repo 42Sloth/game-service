@@ -52,7 +52,7 @@ const Home = () => {
   const handleClick = async (e: any) => {
     const roomId = e.target.id;
     const mode = e.target.value;
-    if (roomId === '0') history.push(`/game`, { roomId: roomId, mode: mode });
+    if (roomId === '0') history.push(`/game`, { roomId: roomId, mode: mode, username: userInfo.id });
     else {
       if (gameList[e.target.name].type === 'private') {
         password = window.prompt('4자리 비밀번호를 입력해주세요');
@@ -64,7 +64,7 @@ const Home = () => {
           // roomId 유효성 검사
           // try {
           //   await checkUserAlreadyInRoom(username);
-          history.push(`/game`, { roomId: roomId, mode: mode });
+          history.push(`/game`, { roomId: roomId, mode: mode, username: userInfo.id });
           // } catch (err) {
           //   if (err.response.status === 406) {
           //     alert('이미 게임에 참여 중입니다');
@@ -86,7 +86,7 @@ const Home = () => {
   const reqEnter = async (roomId: string, password: string, mode: string) => {
     try {
       await checkGameValidate({ roomId: roomId, password: password, mode: mode });
-      if (mode === 'selectEnter') history.push(`/game`, { roomId: roomId, mode: mode });
+      if (mode === 'selectEnter') history.push(`/game`, { roomId: roomId, mode: mode, username: userInfo.id });
       else if (mode === 'spectEnter') history.push(`/game`, { roomId: roomId, mode: mode });
     } catch (err) {
       if (err.response.status === 400) {
@@ -153,7 +153,7 @@ const Home = () => {
         </div>
         {page === 0 ? <GameList gameList={gameList} /> : <Stats />}
       </div>
-      {modalOpen && <Modal open={modalOpen} close={closeModal} header="Create Room"></Modal>}
+      {modalOpen && <Modal open={modalOpen} close={closeModal} header="Create Room" username={userInfo.id}></Modal>}
     </div>
   );
 };
