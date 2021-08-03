@@ -7,10 +7,14 @@ import { Paddle } from './submodule/paddle';
 import { DIRECTION } from './submodule/enums';
 import { gameData } from './submodule/game-data';
 import { v4 as uuid } from 'uuid';
-import { HttpStatus, NotAcceptableException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotAcceptableException } from '@nestjs/common';
 import { GetGameListDto } from '../dtos/get-game-list.dto';
+import { MemberService } from 'src/member/member.service';
 
+@Injectable()
 export class GameService {
+  constructor(private readonly memberService: MemberService) {}
+
   getAllList() {
     const list: GetGameListDto[] = [];
     for (let key of Object.keys(gameData.roomToGame)) {
@@ -42,9 +46,12 @@ export class GameService {
 
   startInterval(server: Server, roomId: string, game: Game) {
     try {
-      const interval = setInterval(() => {
+      const interval = setInterval(async () => {
         gameUpdate(game);
         if (game.over === true) {
+          const scores = await this.getDeltaScore(game);
+          this.memberService.setLadderScore(game.players[0].username, scores[0]);
+          this.memberService.setLadderScore(game.players[1].username, scores[1]);
           server.to(roomId).emit('endGame', new GameResult(game));
           this.insertResult(game);
           delete gameData.userToRoom[game.players[0].username];
@@ -57,6 +64,35 @@ export class GameService {
     } catch (e) {
       console.log(e);
     }
+  }
+
+  async getDeltaScore(game: Game) {
+    const p1 = game.players[0];
+    const p2 = game.players[1];
+    const p1_ladder_score = await this.memberService.getLadderScore(p1.username);
+    const p2_ladder_score = await this.memberService.getLadderScore(p2.username);
+    const winner = p1.score > p2.score ? p1 : p2;
+    const loser = p1.score < p2.score ? p1 : p2;
+    const winner_match_cnt = await this.countByUsername(winner.username, 2);
+    const loser_match_cnt = await this.countByUsername(loser.username, 2);
+    const diff = Math.abs(p1_ladder_score - p2_ladder_score);
+    const victory = 1.0 / (1.0 + Math.pow(10, diff / 400));
+    let scores: Array<number> = [];
+    if (winner_match_cnt >= 30) {
+      scores.push(30 * (1 - victory));
+    } else {
+      scores.push(60 * (1 - victory));
+    }
+    if (loser_match_cnt >= 30) {
+      scores.push(-1 * 30 * victory);
+    } else {
+      scores.push(-1 * 60 * victory);
+    }
+    scores = scores.map((score) => {
+      return Math.floor(score);
+    });
+    if (p1 !== winner) return scores.reverse();
+    return scores;
   }
 
   updatePaddle(info, game: Game) {
