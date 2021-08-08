@@ -75,27 +75,24 @@ export class GameService {
     const p2 = game.players[1];
     const p1_ladder_score = await this.memberService.getLadderScore(p1.username);
     const p2_ladder_score = await this.memberService.getLadderScore(p2.username);
-    const winner = p1.score > p2.score ? p1 : p2;
-    const loser = p1.score < p2.score ? p1 : p2;
-    const winner_match_cnt = await this.countByUsername(winner.username, 2);
-    const loser_match_cnt = await this.countByUsername(loser.username, 2);
-    const diff = Math.abs(p1_ladder_score - p2_ladder_score);
-    const victory = 1.0 / (1.0 + Math.pow(10, diff / 400));
-    let scores: Array<number> = [];
-    if (winner_match_cnt >= 30) {
-      scores.push(30 * victory);
+    const probabilityOfP1 = 1.0 / (1.0 + Math.pow(10, (p2_ladder_score - p1_ladder_score) / 400));
+    const probabilityOfP2 = 1.0 / (1.0 + Math.pow(10, (p1_ladder_score - p2_ladder_score) / 400));
+    let scores = [];
+
+    if (p1.score > p2.score) {
+      scores.push({ [p1_ladder_score]: 100 * (1 - probabilityOfP1) });
+      scores.push({ [p2_ladder_score]: -1 * 100 * probabilityOfP2 });
     } else {
-      scores.push(60 * victory);
-    }
-    if (loser_match_cnt >= 30) {
-      scores.push(-1 * 30 * (1 - victory));
-    } else {
-      scores.push(-1 * 60 * (1 - victory));
+      scores.push({ [p1_ladder_score]: -1 * 100 * probabilityOfP1 });
+      scores.push({ [p2_ladder_score]: 100 * (1 - probabilityOfP2) });
     }
     scores = scores.map((score) => {
-      return Math.floor(score);
+      const origin = +Object.keys(score)[0];
+      const delta = score[origin];
+      if (origin + Math.floor(delta) < 0) return -origin;
+      return Math.round(delta);
     });
-    if (p1 !== winner) return scores.reverse();
+
     return scores;
   }
 

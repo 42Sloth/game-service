@@ -14,7 +14,7 @@ export class MemberService {
       nickname: data.id,
       default_image: data.picture,
       role: 'ROLE_USER',
-      ladder_score: 0,
+      ladder_score: 1000,
     });
   }
 
@@ -30,11 +30,10 @@ export class MemberService {
     return (await this.memberRepository.findOne({ where: [{ username: username }] })).ladder_score;
   }
 
-  setLadderScore(username: string, ladder_score: number) {
+  setLadderScore(username: string, delta: number) {
     (async () => {
       const user: Member = await this.memberRepository.findOne({ where: [{ username: username }] });
-      user.ladder_score += ladder_score;
-      this.memberRepository.save(user);
+      this.memberRepository.update({ id: user.id }, { ladder_score: user.ladder_score + delta });
     })();
     return;
   }
