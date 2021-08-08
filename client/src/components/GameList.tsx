@@ -9,7 +9,7 @@ const GameList = (props: { gameList: IGameList[]; username: string }) => {
   const reqEnter = async (roomId: string, password: string, mode: string) => {
     try {
       await checkGameValidate({ roomId: roomId, password: password, mode: mode });
-      if (mode === 'selectEnter') history.push(`/game`, { roomId: roomId, mode: mode });
+      if (mode === 'selectEnter') history.push(`/game`, { roomId: roomId, mode: mode, username: props.username });
       else if (mode === 'spectEnter') history.push(`/game`, { roomId: roomId, mode: mode });
     } catch (err) {
       if (err.response.status === 400) {
