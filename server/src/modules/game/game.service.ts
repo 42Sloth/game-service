@@ -7,10 +7,14 @@ import { Paddle } from './submodule/paddle';
 import { DIRECTION } from './submodule/enums';
 import { gameData } from './submodule/game-data';
 import { v4 as uuid } from 'uuid';
-import { HttpStatus, NotAcceptableException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotAcceptableException } from '@nestjs/common';
 import { GetGameListDto } from '../dtos/get-game-list.dto';
+import { MemberService } from 'src/member/member.service';
 
+@Injectable()
 export class GameService {
+  constructor(private readonly memberService: MemberService) {}
+
   getAllList() {
     const list: GetGameListDto[] = [];
     for (let key of Object.keys(gameData.roomToGame)) {
@@ -42,21 +46,59 @@ export class GameService {
 
   startInterval(server: Server, roomId: string, game: Game) {
     try {
-      const interval = setInterval(() => {
+      const interval = setInterval(async () => {
         gameUpdate(game);
         if (game.over === true) {
-          server.to(roomId).emit('endGame', new GameResult(game));
-          this.insertResult(game);
-          delete gameData.userToRoom[game.players[0].username];
-          delete gameData.userToRoom[game.players[1].username];
-          delete gameData.roomToGame[roomId];
           clearInterval(interval);
+          await this.endGameProcess(server, roomId, game);
         }
         server.to(roomId).emit('drawGame', game);
       }, 1000 / 50);
     } catch (e) {
       console.log(e);
     }
+  }
+
+  async endGameProcess(server: Server, roomId: string, game: Game) {
+    const scores = await this.getDeltaScore(game);
+    const gameResult = new GameResult(game, scores);
+    this.memberService.setLadderScore(game.players[0].username, scores[0]);
+    this.memberService.setLadderScore(game.players[1].username, scores[1]);
+    gameResult.save(); // 저장
+    server.to(roomId).emit('endGame', GetGameResultDto.fromEntity(gameResult));
+    delete gameData.userToRoom[game.players[0].username];
+    delete gameData.userToRoom[game.players[1].username];
+    delete gameData.roomToGame[roomId];
+  }
+
+  async getLadderScore(username: string) {
+    return await this.memberService.getLadderScore(username);
+  }
+
+  async getDeltaScore(game: Game) {
+    const p1 = game.players[0];
+    const p2 = game.players[1];
+    const p1_ladder_score = await this.memberService.getLadderScore(p1.username);
+    const p2_ladder_score = await this.memberService.getLadderScore(p2.username);
+    const probabilityOfP1 = 1.0 / (1.0 + Math.pow(10, (p2_ladder_score - p1_ladder_score) / 400));
+    const probabilityOfP2 = 1.0 / (1.0 + Math.pow(10, (p1_ladder_score - p2_ladder_score) / 400));
+    let scores = [];
+
+    if (p1.score > p2.score) {
+      scores.push({ [p1_ladder_score]: 100 * (1 - probabilityOfP1) });
+      scores.push({ [p2_ladder_score]: -1 * 100 * probabilityOfP2 });
+    } else {
+      scores.push({ [p1_ladder_score]: -1 * 100 * probabilityOfP1 });
+      scores.push({ [p2_ladder_score]: 100 * (1 - probabilityOfP2) });
+    }
+    scores = scores.map((score) => {
+      const origin = +Object.keys(score)[0];
+      const delta = score[origin];
+      if (origin + Math.floor(delta) < 0) return -origin;
+      return Math.round(delta);
+    });
+
+    return scores;
   }
 
   updatePaddle(info, game: Game) {
@@ -69,11 +111,12 @@ export class GameService {
     }
   }
 
-  createDefaultGame(username: string, access: string): string {
+  async createDefaultGame(username: string, access: string): Promise<string> {
     if (!username) throw NotAcceptableException;
     const roomId: string = uuid();
     const game: Game = new Game();
-    const paddle: Paddle = new Paddle('left', username);
+    let ladderScore = await this.getLadderScore(username);
+    const paddle: Paddle = new Paddle('left', username, ladderScore);
     game.players.push(paddle);
     if (access === 'public') gameData.matchQueue.push(paddle);
     gameData.roomToGame[roomId] = game;
@@ -82,8 +125,8 @@ export class GameService {
     return roomId;
   }
 
-  createCustomGame(data): string {
-    const roomId: string = this.createDefaultGame(data.username, data.type);
+  async createCustomGame(username: string, data): Promise<string> {
+    const roomId: string = await this.createDefaultGame(username, data.type);
     const game: Game = gameData.roomToGame[roomId];
     game.ball.setSpeedByType(data.speed);
     game.ball.setSizeByType(data.ball);
@@ -93,11 +136,6 @@ export class GameService {
     if (data.type === 'private') game.setPrivate(data.password);
     else gameData.matchQueue.push(game.players[0]);
     return roomId;
-  }
-
-  insertResult(game: Game) {
-    const gameResult: GameResult = new GameResult(game);
-    gameResult.save();
   }
 
   checkUserAlreadyInGame(username: string): number {

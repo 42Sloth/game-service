@@ -1,14 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class Member{
+export class Member {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   username: string;
 
-  @Column()
+  @Column({ unique: true })
   nickname: string;
 
   @Column()
@@ -16,4 +16,7 @@ export class Member{
 
   @Column()
   role: string;
+
+  @Column()
+  ladder_score: number;
 }

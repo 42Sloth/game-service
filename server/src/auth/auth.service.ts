@@ -40,7 +40,7 @@ export class AuthService {
       }
     });
 
-    res.redirect('http://localhost:3001');
+    res.redirect(process.env.CLIENT_URL);
     // return {
     //   message: 'User information from 42',
     //   user: req.user,

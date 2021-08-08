@@ -3,7 +3,7 @@ import { Game } from '../game/game';
 
 @Entity()
 export class GameResult extends BaseEntity {
-  constructor(game: Game) {
+  constructor(game: Game, deltaScores: number[]) {
     super();
     if (game) {
       this.playerLeft = game.players[0].username;
@@ -14,6 +14,10 @@ export class GameResult extends BaseEntity {
       this.startAt = game.startAt;
       this.endAt = game.endAt;
       this.playTime = Math.floor((game.endAt.getTime() - game.startAt.getTime()) / 1000);
+      this.playerLeftLadderScore = game.players[0].ladderScore + deltaScores[0];
+      this.playerRightLadderScore = game.players[1].ladderScore + deltaScores[1];
+      this.playerLeftDelta = deltaScores[0];
+      this.playerRightDelta = deltaScores[1];
     }
   }
 
@@ -43,4 +47,12 @@ export class GameResult extends BaseEntity {
 
   @Column({ nullable: false, name: 'play_time' })
   playTime: number;
+
+  playerLeftLadderScore: number;
+
+  playerRightLadderScore: number;
+
+  playerLeftDelta: number;
+
+  playerRightDelta: number;
 }

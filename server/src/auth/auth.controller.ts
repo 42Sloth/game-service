@@ -33,4 +33,9 @@ export class AuthController {
   sendMail(): any {
     return this.authService.sendMail('kangjm2@naver.com');
   }
+
+  // @Get('logout')
+  // logout() {
+  //   console.log('logout');
+  // }
 }

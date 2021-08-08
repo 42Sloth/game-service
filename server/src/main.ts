@@ -32,7 +32,7 @@ async function bootstrap() {
   app.use(passport.session()); // 세션 연결
 
   app.enableCors({
-    origin: 'http://localhost:3001',
+    origin: process.env.CLIENT_URL,
     credentials: true,
   });
 
