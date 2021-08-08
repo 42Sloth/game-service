@@ -49,21 +49,25 @@ export class GameService {
       const interval = setInterval(async () => {
         gameUpdate(game);
         if (game.over === true) {
-          const scores = await this.getDeltaScore(game);
-          this.memberService.setLadderScore(game.players[0].username, scores[0]);
-          this.memberService.setLadderScore(game.players[1].username, scores[1]);
-          server.to(roomId).emit('endGame', new GameResult(game));
-          this.insertResult(game);
-          delete gameData.userToRoom[game.players[0].username];
-          delete gameData.userToRoom[game.players[1].username];
-          delete gameData.roomToGame[roomId];
           clearInterval(interval);
+          await this.endGameProcess(server, roomId, game);
         }
         server.to(roomId).emit('drawGame', game);
       }, 1000 / 50);
     } catch (e) {
       console.log(e);
     }
+  }
+
+  async endGameProcess(server: Server, roomId: string, game: Game) {
+    const scores = await this.getDeltaScore(game);
+    this.memberService.setLadderScore(game.players[0].username, scores[0]);
+    this.memberService.setLadderScore(game.players[1].username, scores[1]);
+    this.insertResult(game);
+    server.to(roomId).emit('endGame', new GameResult(game));
+    delete gameData.userToRoom[game.players[0].username];
+    delete gameData.userToRoom[game.players[1].username];
+    delete gameData.roomToGame[roomId];
   }
 
   async getDeltaScore(game: Game) {
@@ -79,14 +83,14 @@ export class GameService {
     const victory = 1.0 / (1.0 + Math.pow(10, diff / 400));
     let scores: Array<number> = [];
     if (winner_match_cnt >= 30) {
-      scores.push(30 * (1 - victory));
+      scores.push(30 * victory);
     } else {
-      scores.push(60 * (1 - victory));
+      scores.push(60 * victory);
     }
     if (loser_match_cnt >= 30) {
-      scores.push(-1 * 30 * victory);
+      scores.push(-1 * 30 * (1 - victory));
     } else {
-      scores.push(-1 * 60 * victory);
+      scores.push(-1 * 60 * (1 - victory));
     }
     scores = scores.map((score) => {
       return Math.floor(score);
