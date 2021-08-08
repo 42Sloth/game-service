@@ -18,6 +18,7 @@ interface IPaddle {
   speed: number;
   username: string;
   ready: boolean;
+  ladderScore: number;
 }
 
 interface ISide {
@@ -49,6 +50,10 @@ export interface IGameResult {
   startAt: Date;
   endAt: Date;
   playTime: number;
+  playerLeftLadderScore: number;
+  playerRightLadderScore: number;
+  playerLeftDelta: number;
+  playerRightDelta: number;
 }
 
 export interface IGameList {

@@ -42,6 +42,7 @@ const MyPage = () => {
       <div id="profile-wrapper">
         <img id="profile" src={picture} alt="profile"></img>
       </div>
+      {/* <div>ladderScore: {}</div> */}
     </div>
   );
 };

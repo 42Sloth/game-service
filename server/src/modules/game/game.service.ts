@@ -61,13 +61,18 @@ export class GameService {
 
   async endGameProcess(server: Server, roomId: string, game: Game) {
     const scores = await this.getDeltaScore(game);
+    const gameResult = new GameResult(game, scores);
     this.memberService.setLadderScore(game.players[0].username, scores[0]);
     this.memberService.setLadderScore(game.players[1].username, scores[1]);
-    this.insertResult(game);
-    server.to(roomId).emit('endGame', new GameResult(game));
+    gameResult.save(); // 저장
+    server.to(roomId).emit('endGame', GetGameResultDto.fromEntity(gameResult));
     delete gameData.userToRoom[game.players[0].username];
     delete gameData.userToRoom[game.players[1].username];
     delete gameData.roomToGame[roomId];
+  }
+
+  async getLadderScore(username: string) {
+    return await this.memberService.getLadderScore(username);
   }
 
   async getDeltaScore(game: Game) {
@@ -106,11 +111,12 @@ export class GameService {
     }
   }
 
-  createDefaultGame(username: string, access: string): string {
+  async createDefaultGame(username: string, access: string): Promise<string> {
     if (!username) throw NotAcceptableException;
     const roomId: string = uuid();
     const game: Game = new Game();
-    const paddle: Paddle = new Paddle('left', username);
+    let ladderScore = await this.getLadderScore(username);
+    const paddle: Paddle = new Paddle('left', username, ladderScore);
     game.players.push(paddle);
     if (access === 'public') gameData.matchQueue.push(paddle);
     gameData.roomToGame[roomId] = game;
@@ -119,8 +125,8 @@ export class GameService {
     return roomId;
   }
 
-  createCustomGame(username: string, data): string {
-    const roomId: string = this.createDefaultGame(username, data.type);
+  async createCustomGame(username: string, data): Promise<string> {
+    const roomId: string = await this.createDefaultGame(username, data.type);
     const game: Game = gameData.roomToGame[roomId];
     game.ball.setSpeedByType(data.speed);
     game.ball.setSizeByType(data.ball);
@@ -130,11 +136,6 @@ export class GameService {
     if (data.type === 'private') game.setPrivate(data.password);
     else gameData.matchQueue.push(game.players[0]);
     return roomId;
-  }
-
-  insertResult(game: Game) {
-    const gameResult: GameResult = new GameResult(game);
-    gameResult.save();
   }
 
   checkUserAlreadyInGame(username: string): number {

@@ -22,10 +22,6 @@ export class MemberService {
     return this.memberRepository.findOne({ where: [{ username: username }] });
   }
 
-  // async getMemberDto(username: string): Promise<MemberDto> {
-  //   return MemberDto.fromEntity(await this.memberRepository.findOne({ where: [{ username: username }] }));
-  // }
-
   async getLadderScore(username: string): Promise<number> {
     return (await this.memberRepository.findOne({ where: [{ username: username }] })).ladder_score;
   }
@@ -36,5 +32,9 @@ export class MemberService {
       this.memberRepository.update({ id: user.id }, { ladder_score: user.ladder_score + delta });
     })();
     return;
+  }
+
+  async findAllOrderByLadderScore(): Promise<Array<Member>> {
+    return await this.memberRepository.createQueryBuilder('member').orderBy('ladder_score', 'DESC').getMany();
   }
 }

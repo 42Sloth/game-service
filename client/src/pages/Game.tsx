@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import io from 'socket.io-client';
 import { IGame, IGameResult, ILocation } from '../interface/gameInterface';
@@ -95,18 +95,23 @@ const Game = () => {
     // draw the players username, score (left)
     if (player_left) {
       context.fillText(`player1: ${player_left.username}`, 20, 50);
-      context.fillText(player_left.score.toString(), WIDTH / 2 - 250, 100);
+      context.fillText(player_left.ladderScore.toString(), WIDTH / 2 - 250, 100);
+      context.fillText(player_left.score.toString(), WIDTH / 2 - 250, 150);
     }
     // draw the paddles username, score (right)
     if (player_right) {
       context.fillText(`player2: ${player_right.username}`, WIDTH / 2 + 20, 50);
-      context.fillText(player_right.score.toString(), WIDTH / 2 + 250, 100);
+      context.fillText(player_right.ladderScore.toString(), WIDTH / 2 + 250, 100);
+      context.fillText(player_right.score.toString(), WIDTH / 2 + 250, 150);
     }
   };
 
   const drawGame = (gameState: IGame) => {
-    if (gameState.players[0].username === username) setReady(gameState.players[0].ready);
-    else if (gameState.players[1] && gameState.players[1].username === username) setReady(gameState.players[1].ready);
+    if (gameState.players[0].username === username) {
+      setReady(gameState.players[0].ready);
+    } else if (gameState.players[1] && gameState.players[1].username === username) {
+      setReady(gameState.players[1].ready);
+    }
     draw(gameState);
   };
 
@@ -124,7 +129,17 @@ const Game = () => {
      * commented by taehkim : LGTM 👍
      */
     socket.off('drawGame', drawGame);
-    const msg = `winner: ${gameResult.winner}\n 메인 화면으로 돌아가시겠습니까?`;
+    let deltaScore = 0;
+    let ladderScore = 0;
+    if (gameResult.playerLeft === username) {
+      deltaScore = gameResult.playerLeftDelta;
+      ladderScore = gameResult.playerLeftLadderScore;
+    } else if (gameResult.playerRight === username) {
+      deltaScore = gameResult.playerRightDelta;
+      ladderScore = gameResult.playerRightLadderScore;
+    }
+    let deltaSign = deltaScore > 0 ? '+' : '';
+    const msg = `winner: ${gameResult.winner}\n My Ladder Score is ${ladderScore} (${deltaSign}${deltaScore}) \n 메인 화면으로 돌아가시겠습니까?`;
     if (window.confirm(msg)) history.push('/');
     else setReady(false);
   };
@@ -140,9 +155,6 @@ const Game = () => {
   const init = async () => {
     // 빠른 시작
     if (mode === 'fastEnter') {
-      // while (!(username = prompt('닉네임?'))) {
-      //   alert('닉네임을 입력해주세요!');
-      // }
       socket.emit('fastEnter', { username: username });
       document.addEventListener('keyup', spaceup);
       socket.on('permitToCtrl', permitToCtrl);
@@ -155,9 +167,6 @@ const Game = () => {
     }
     // 플레이어로 게임 참여
     else if (mode === 'selectEnter') {
-      // while (!(username = prompt('닉네임?'))) {
-      //   alert('닉네임을 입력해주세요!');
-      // }
       // TODO: 존재하는 room인지 확인하는 로직 추가
       socket.emit('selectEnter', { roomId: roomId, username: username });
       document.addEventListener('keyup', spaceup);

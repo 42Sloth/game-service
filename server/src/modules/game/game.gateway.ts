@@ -31,9 +31,12 @@ export class GameGateway {
         game.players.shift();
         gameData.userToRoom[username] = null;
         delete gameData.userToRoom[username];
-        game.players.push(new Paddle('left', guestName));
-        game.leftOrRight[guestName] = 0;
-        if (game.type === 'public') gameData.matchQueue.push(game.players[0]);
+        (async () => {
+          let ladderScore = await this.gameService.getLadderScore(guestName);
+          game.players.push(new Paddle('left', guestName, ladderScore));
+          game.leftOrRight[guestName] = 0;
+          if (game.type === 'public') gameData.matchQueue.push(game.players[0]);
+        })();
       }
       // 한명이 있는데 나갔으면 방터트려
       else if (game.players.length === 1) {
@@ -70,25 +73,30 @@ export class GameGateway {
 
       // 새로운 방 생성
       if (gameData.matchQueue.length == 0) {
-        const roomId: string = this.gameService.createDefaultGame(username, 'public');
-        const game: Game = gameData.roomToGame[roomId];
-        client.join(roomId);
-        this.gameService.waitingInterval(this.server, roomId, game);
+        (async () => {
+          const roomId: string = await this.gameService.createDefaultGame(username, 'public');
+          const game: Game = gameData.roomToGame[roomId];
+          client.join(roomId);
+          this.gameService.waitingInterval(this.server, roomId, game);
+        })();
       }
       // 게스트 들어왔을 때
       else if (gameData.matchQueue.length >= 1) {
         const roomOwner: Paddle = gameData.matchQueue.shift();
         const roomId: string = gameData.userToRoom[roomOwner.username];
         const game: Game = gameData.roomToGame[roomId];
-        const roomGuest: Paddle = new Paddle('right', username);
-        game.turn = roomGuest;
-        game.players.push(roomGuest);
-        // const roomGuest = gameData.matchQueue.shift();
-        gameData.userToRoom[roomGuest.username] = roomId;
-        game.players[1].username = roomGuest.username;
-        game.leftOrRight[roomGuest.username] = 1;
-        client.join(roomId);
-        this.gameService.waitingInterval(this.server, roomId, game);
+        (async () => {
+          let ladderScore = await this.gameService.getLadderScore(username);
+          const roomGuest: Paddle = new Paddle('right', username, ladderScore);
+          game.turn = roomGuest;
+          game.players.push(roomGuest);
+          // const roomGuest = gameData.matchQueue.shift();
+          gameData.userToRoom[roomGuest.username] = roomId;
+          game.players[1].username = roomGuest.username;
+          game.leftOrRight[roomGuest.username] = 1;
+          client.join(roomId);
+          this.gameService.waitingInterval(this.server, roomId, game);
+        })();
       }
     } catch (e) {
       console.log(e);
@@ -97,13 +105,16 @@ export class GameGateway {
 
   @SubscribeMessage('selectEnter')
   selectEnter(@ConnectedSocket() client: Socket, @MessageBody() body) {
+    const username: string = body.username;
+    const roomId: string = body.roomId;
+
     // roomID가 없거나 username이 없거나 유효하지 않은 roomID인 경우
-    if (!body.roomId || !body.username || !gameData.roomToGame[body.roomId]) {
+    if (!roomId || !username || !gameData.roomToGame[roomId]) {
       throw BadRequestException;
     }
-    const game: Game = gameData.roomToGame[body.roomId];
-    if (gameData.userToRoom[body.username]) {
-      const roomId: string = gameData.userToRoom[body.username];
+    const game: Game = gameData.roomToGame[roomId];
+    if (gameData.userToRoom[username]) {
+      const roomId: string = gameData.userToRoom[username];
       const game: Game = gameData.roomToGame[roomId];
       client.join(roomId);
       if (game.isStarted) this.server.to(roomId).emit('permitToCtrl');
@@ -111,14 +122,17 @@ export class GameGateway {
       return;
     }
     if (game.type === 'public') gameData.matchQueue.shift();
-    const roomGuest: Paddle = new Paddle('right', body.username);
-    game.turn = roomGuest;
-    game.players.push(roomGuest);
-    gameData.userToRoom[roomGuest.username] = body.roomId;
-    game.players[1].username = roomGuest.username;
-    game.leftOrRight[roomGuest.username] = 1;
-    client.join(body.roomId);
-    this.gameService.waitingInterval(this.server, body.roomId, game);
+    (async () => {
+      let ladderScore = await this.gameService.getLadderScore(username);
+      const roomGuest: Paddle = new Paddle('right', username, ladderScore);
+      game.turn = roomGuest;
+      game.players.push(roomGuest);
+      gameData.userToRoom[roomGuest.username] = roomId;
+      game.players[1].username = roomGuest.username;
+      game.leftOrRight[roomGuest.username] = 1;
+      client.join(roomId);
+      this.gameService.waitingInterval(this.server, roomId, game);
+    })();
   }
 
   @SubscribeMessage('ready')

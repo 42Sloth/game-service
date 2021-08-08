@@ -11,8 +11,9 @@ export class Paddle {
   speed: number;
   username: string;
   ready: boolean;
+  ladderScore: number;
 
-  constructor(side: string, username: string) {
+  constructor(side: string, username: string, ladderScore: number) {
     this.width = 15;
     this.height = 70;
     this.x = side === 'left' ? 120 : 600;
@@ -22,5 +23,6 @@ export class Paddle {
     this.speed = 10;
     this.username = username;
     this.ready = false;
+    this.ladderScore = ladderScore;
   }
 }

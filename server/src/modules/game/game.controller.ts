@@ -15,9 +15,9 @@ export class GameController {
 
   // FE측은 POST로 여기로 날려주고, socket-> 'enter'로 접속해주어야 함.
   @Post('/new')
-  createCustomGame(@Req() req, @Res() response: Response, @MessageBody() body: CreateGameDto) {
+  async createCustomGame(@Req() req, @Res() response: Response, @MessageBody() body: CreateGameDto) {
     response.status(HttpStatus.OK);
-    response.send(this.gameService.createCustomGame(req.user.id, body));
+    response.send(await this.gameService.createCustomGame(req.user.id, body));
   }
 
   // TODO

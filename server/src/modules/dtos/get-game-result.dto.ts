@@ -8,6 +8,10 @@ export class GetGameResultDto {
   playerLeftScore: number;
   playerRightScore: number;
   playTime: number;
+  playerLeftLadderScore: number;
+  playerRightLadderScore: number;
+  playerLeftDelta: number;
+  playerRightDelta: number;
 
   public static fromEntity(entity: GameResult): GetGameResultDto {
     return {
@@ -18,6 +22,10 @@ export class GetGameResultDto {
       playerRightScore: entity.playerRightScore,
       winner: entity.winner,
       playTime: entity.playTime,
+      playerLeftLadderScore: entity.playerLeftLadderScore,
+      playerRightLadderScore: entity.playerRightLadderScore,
+      playerLeftDelta: entity.playerLeftDelta,
+      playerRightDelta: entity.playerRightDelta,
     };
   }
 }
