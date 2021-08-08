@@ -21,7 +21,7 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+    const payload = { username: user.id, sub: user.userId };
 
     // return {
     //   access_token: this.jwtService.sign(payload),
@@ -34,7 +34,7 @@ export class AuthService {
       return 'No user from 42';
     }
 
-    this.memberService.getMember(req.user.username).then((exist) => {
+    this.memberService.getMember(req.user.id).then((exist) => {
       if (exist == undefined) {
         this.memberService.createMember(req.user);
       }

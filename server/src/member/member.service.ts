@@ -9,13 +9,21 @@ export class MemberService {
   constructor(@InjectRepository(Member) private readonly memberRepository: Repository<Member>) {}
 
   async createMember(data): Promise<Member> {
-    return this.memberRepository.save({
-      username: data.id,
-      nickname: data.id,
-      default_image: data.picture,
-      role: 'ROLE_USER',
-      ladder_score: 1000,
-    });
+    let member: Member;
+    try {
+      member = await this.memberRepository.save({
+        username: data.id,
+        nickname: data.id,
+        default_image: data.picture,
+        role: 'ROLE_USER',
+        ladder_score: 1000,
+      });
+    } catch (e) {
+      console.log('MemberService: createMember 에서 오류가 났습니다.');
+      console.log(e.message);
+      console.log(e.query);
+    }
+    return member;
   }
 
   async getMember(username: string): Promise<Member> {
